@@ -65,6 +65,52 @@ def DrawPieces():
         elif board[i] == BlackQueen:
             screen.blit(BlackQueen_png, (square_x, square_y))
 
+def FenToBoard(fen):
+    rank = 0
+    file = 0
+    for i in range(len(fen)):
+        if fen[i] == " ":
+            break
+        elif fen[i] == "/":
+            rank += 1
+            file = 0
+        elif fen[i].isdigit():
+            for j in range(int(fen[i])):
+                board[rank * 8 + file] = Empty
+                file += 1
+        else:
+            board[rank * 8 + file] = fen[i]
+            file += 1
+
+def MakeBoardUsable():
+    for i in range(len(board)):
+        if board[i] == "0":
+            board[i] = "0"
+        elif board[i] == "K":
+            board[i] = WhiteKing
+        elif board[i] == "k":
+            board[i] = BlackKing
+        elif board[i] == "P":
+            board[i] = WhitePawn
+        elif board[i] == "p":
+            board[i] = BlackPawn
+        elif board[i] == "N":
+            board[i] = WhiteKnight
+        elif board[i] == "n":
+            board[i] = BlackKnight
+        elif board[i] == "B":
+            board[i] = WhiteBishop
+        elif board[i] == "b":
+            board[i] = BlackBishop
+        elif board[i] == "R":
+            board[i] = WhiteRook
+        elif board[i] == "r":
+            board[i] = BlackRook
+        elif board[i] == "Q":
+            board[i] = WhiteQueen
+        elif board[i] == "q":
+            board[i] = BlackQueen
+    
 WhiteKing_png = pygame.image.load("chess/images/wK.png")
 WhiteKing_png = pygame.transform.scale(WhiteKing_png, (int(square_width), int(square_height)))
 BlackKing_png = pygame.image.load("chess/images/bK.png")
@@ -109,12 +155,16 @@ board = [0 for row in range(64)]
 
 
 CreateGraphicalBoard()
+FenToBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
+MakeBoardUsable()
+DrawPieces()
 
 run = True
 while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
+    
     DrawPieces()
     pygame.display.update()
 pygame.quit()
