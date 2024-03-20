@@ -2,8 +2,8 @@ import pygame
 
 pygame.init()
 
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 800
+SCREEN_WIDTH = 1200
+SCREEN_HEIGHT = 1200
 if SCREEN_WIDTH <= SCREEN_HEIGHT:
     SmallestValue = SCREEN_WIDTH
 else:
@@ -14,12 +14,11 @@ square_width = SmallestValue / 8
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 def CreateGraphicalBoard():
-    counter = 0
     rank = 0
     lightColor = 240, 216, 192
     darkColor = 168, 121, 101
-    while counter <= 63:
-        file = counter % 8
+    for i in range(64):
+        file = i % 8
         square_x = file * square_width
         square_y = rank * square_height
 
@@ -33,15 +32,89 @@ def CreateGraphicalBoard():
 
         if file == 7:
             rank += 1
-        counter += 1
+            
+def DrawPieces():
+    for i in range(64):
+        file = i % 8
+        rank = i // 8
+        square_x = file * square_width
+        square_y = rank * square_height
+
+        if board[i] == WhiteKing:
+            screen.blit(WhiteKing_png, (square_x, square_y))
+        elif board[i] == BlackKing:
+            screen.blit(BlackKing_png, (square_x, square_y))
+        elif board[i] == WhitePawn:
+            screen.blit(WhitePawn_png, (square_x, square_y))
+        elif board[i] == BlackPawn:
+            screen.blit(BlackPawn_png, (square_x, square_y))
+        elif board[i] == WhiteKnight:
+            screen.blit(WhiteKnight_png, (square_x, square_y))
+        elif board[i] == BlackKnight:
+            screen.blit(BlackKnight_png, (square_x, square_y))
+        elif board[i] == WhiteBishop:
+            screen.blit(WhiteBishop_png, (square_x, square_y))
+        elif board[i] == BlackBishop:
+            screen.blit(BlackBishop_png, (square_x, square_y))
+        elif board[i] == WhiteRook:
+            screen.blit(WhiteRook_png, (square_x, square_y))
+        elif board[i] == BlackRook:
+            screen.blit(BlackRook_png, (square_x, square_y))
+        elif board[i] == WhiteQueen:
+            screen.blit(WhiteQueen_png, (square_x, square_y))
+        elif board[i] == BlackQueen:
+            screen.blit(BlackQueen_png, (square_x, square_y))
+
+WhiteKing_png = pygame.image.load("chess/images/wK.png")
+WhiteKing_png = pygame.transform.scale(WhiteKing_png, (int(square_width), int(square_height)))
+BlackKing_png = pygame.image.load("chess/images/bK.png")
+BlackKing_png = pygame.transform.scale(BlackKing_png, (int(square_width), int(square_height)))
+WhitePawn_png = pygame.image.load("chess/images/wP.png")
+WhitePawn_png = pygame.transform.scale(WhitePawn_png, (int(square_width), int(square_height)))
+BlackPawn_png = pygame.image.load("chess/images/bP.png")
+BlackPawn_png = pygame.transform.scale(BlackPawn_png, (int(square_width), int(square_height)))
+WhiteKnight_png = pygame.image.load("chess/images/wN.png")
+WhiteKnight_png = pygame.transform.scale(WhiteKnight_png, (int(square_width), int(square_height)))
+BlackKnight_png = pygame.image.load("chess/images/bN.png")
+BlackKnight_png = pygame.transform.scale(BlackKnight_png, (int(square_width), int(square_height)))
+WhiteBishop_png = pygame.image.load("chess/images/wB.png")
+WhiteBishop_png = pygame.transform.scale(WhiteBishop_png, (int(square_width), int(square_height)))
+BlackBishop_png = pygame.image.load("chess/images/bB.png")
+BlackBishop_png = pygame.transform.scale(BlackBishop_png, (int(square_width), int(square_height)))
+WhiteRook_png = pygame.image.load("chess/images/wR.png")
+WhiteRook_png = pygame.transform.scale(WhiteRook_png, (int(square_width), int(square_height)))
+BlackRook_png = pygame.image.load("chess/images/bR.png")
+BlackRook_png = pygame.transform.scale(BlackRook_png, (int(square_width), int(square_height)))
+WhiteQueen_png = pygame.image.load("chess/images/wQ.png")
+WhiteQueen_png = pygame.transform.scale(WhiteQueen_png, (int(square_width), int(square_height)))
+BlackQueen_png = pygame.image.load("chess/images/bQ.png")
+BlackQueen_png = pygame.transform.scale(BlackQueen_png, (int(square_width), int(square_height)))
+            
+                        
+Empty = "0"
+WhiteKing = "wK"
+BlackKing = "bK"
+WhitePawn = "wP"
+BlackPawn = "bP"
+WhiteKnight = "wN"
+BlackKnight = "bN"
+WhiteBishop = "wB"
+BlackBishop = "bB"
+WhiteRook = "wR"
+BlackRook = "bR"
+WhiteQueen = "wQ"
+BlackQueen = "bQ"
+
+board = [0 for row in range(64)]
+
 
 CreateGraphicalBoard()
+
 run = True
 while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-
+    DrawPieces()
     pygame.display.update()
-
 pygame.quit()
