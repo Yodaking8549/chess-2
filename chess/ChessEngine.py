@@ -1,5 +1,5 @@
 import pygame
-
+import afplay
 pygame.init()
 
 SCREEN_WIDTH = 1200
@@ -197,10 +197,15 @@ def PutPieceOnNewSquare():
     if Dragmode == 1:
         OldSquare = ClickedSquare
         NewSquare = GetSquareUnderMouse()
+        if board[NewSquare] == Empty:
+            afplay("chess/sounds/move.mp3")
+        else:
+            afplay("chess/sounds/capture.mp3")
         if OldSquare != NewSquare:
             board[NewSquare] = DraggedPiece
             board[OldSquare] = Empty
         Dragmode = 0
+    
             
 WhiteKing_png = pygame.image.load("chess/images/wK.png")
 WhiteKing_png = pygame.transform.scale(WhiteKing_png, (int(square_width), int(square_height)))
