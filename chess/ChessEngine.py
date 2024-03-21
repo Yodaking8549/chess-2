@@ -24,6 +24,8 @@ def ClearVariables():
     MoveChosen = 0
     global ClickedSquare
     ClickedSquare = 0
+    global Dragmode
+    Dragmode = 0
 
 def CreateGraphicalBoard():
     rank = 0
@@ -131,6 +133,7 @@ def GetSquareUnderMouse():
 
 def RemovePieceFromClickedSquare():
     global ClickedSquare
+    global Dragmode
     ClickedSquare = GetSquareUnderMouse()
     if board[ClickedSquare] != Empty:
         file = ClickedSquare % 8
@@ -146,19 +149,14 @@ def RemovePieceFromClickedSquare():
 
         square = pygame.Rect((square_x, square_y, square_width, square_height))
         pygame.draw.rect(screen, SquareColor, square)
+        
+        Dragmode = 1
 
         
 def PutPieceUnderMouseCurser():
     piece_x = pygame.mouse.get_pos()[0] - square_width / 2
     piece_y = pygame.mouse.get_pos()[1] - square_height / 2
     SummonPieceFromBoardArray(ClickedSquare, piece_x, piece_y)
-    while True:
-        pygame.wait(10)
-        piece_x = pygame.mouse.get_pos()[0] - square_width / 2
-        piece_y = pygame.mouse.get_pos()[1] - square_height / 2
-        if PieceDropped == 1:
-            break
-        
 
         
 
@@ -217,13 +215,18 @@ while run:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             RemovePieceFromClickedSquare()
-            PutPieceUnderMouseCurser()
+            
         if event.type == pygame.MOUSEBUTTONUP:
-            PieceDropped = 1
+            Dragmode = 0
         
     if MoveChosen == 1:
         DrawPieces()
         MoveChosen = 0
+        
+    if Dragmode == 1:
+        CreateGraphicalBoard()
+        DrawPieces()
+        PutPieceUnderMouseCurser()
     
-    pygame.display.update()
+    pygame.display.flip()
 pygame.quit()
