@@ -30,6 +30,8 @@ def ClearVariables():
     OldSquare = 0
     global NewSquare
     NewSquare = 0
+    global DraggedPiece
+    DraggedPiece = 0
 
 def CreateGraphicalBoard():
     rank = 0
@@ -74,7 +76,33 @@ def SummonPieceFromBoardArray(n, piece_x, piece_y):
         screen.blit(WhiteQueen_png, (piece_x, piece_y))
     elif board[n] == BlackQueen:
         screen.blit(BlackQueen_png, (piece_x, piece_y))
-            
+
+def SummonPieceFromName(name, piece_x, piece_y):
+    if name == WhiteKing:
+        screen.blit(WhiteKing_png, (piece_x, piece_y))
+    elif name == BlackKing:
+        screen.blit(BlackKing_png, (piece_x, piece_y))
+    elif name == WhitePawn:
+        screen.blit(WhitePawn_png, (piece_x, piece_y))
+    elif name == BlackPawn:
+        screen.blit(BlackPawn_png, (piece_x, piece_y))
+    elif name == WhiteKnight:
+        screen.blit(WhiteKnight_png, (piece_x, piece_y))
+    elif name == BlackKnight:
+        screen.blit(BlackKnight_png, (piece_x, piece_y))
+    elif name == WhiteBishop:
+        screen.blit(WhiteBishop_png, (piece_x, piece_y))
+    elif name == BlackBishop:
+        screen.blit(BlackBishop_png, (piece_x, piece_y))
+    elif name == WhiteRook:
+        screen.blit(WhiteRook_png, (piece_x, piece_y))
+    elif name == BlackRook:
+        screen.blit(BlackRook_png, (piece_x, piece_y))
+    elif name == WhiteQueen:
+        screen.blit(WhiteQueen_png, (piece_x, piece_y))
+    elif name == BlackQueen:
+        screen.blit(BlackQueen_png, (piece_x, piece_y))
+
 def DrawPieces():
     for i in range(64):
         file = i % 8
@@ -138,6 +166,7 @@ def GetSquareUnderMouse():
 def RemovePieceFromClickedSquare():
     global ClickedSquare
     global Dragmode
+    global DraggedPiece
     ClickedSquare = GetSquareUnderMouse()
     if board[ClickedSquare] != Empty:
         file = ClickedSquare % 8
@@ -155,12 +184,13 @@ def RemovePieceFromClickedSquare():
         pygame.draw.rect(screen, SquareColor, square)
         
         Dragmode = 1
-
+        DraggedPiece = board[ClickedSquare]
+        board[ClickedSquare] = Empty
         
 def PutPieceUnderMouseCurser():
     piece_x = pygame.mouse.get_pos()[0] - square_width / 2
     piece_y = pygame.mouse.get_pos()[1] - square_height / 2
-    SummonPieceFromBoardArray(ClickedSquare, piece_x, piece_y)
+    SummonPieceFromName(DraggedPiece, piece_x, piece_y)
 
 def PutPieceOnNewSquare():
     global Dragmode
@@ -168,7 +198,7 @@ def PutPieceOnNewSquare():
         OldSquare = ClickedSquare
         NewSquare = GetSquareUnderMouse()
         if OldSquare != NewSquare:
-            board[NewSquare] = board[OldSquare]
+            board[NewSquare] = DraggedPiece
             board[OldSquare] = Empty
         Dragmode = 0
             
