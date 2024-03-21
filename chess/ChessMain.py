@@ -7,6 +7,7 @@ SCREEN_HEIGHT = 1200
 StartFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 lightColor = 240, 216, 192
 darkColor = 168, 121, 101
+SquareHighlightColor = 217, 162, 13, 120
     
 if SCREEN_WIDTH <= SCREEN_HEIGHT:
     SmallestValue = SCREEN_WIDTH
@@ -17,6 +18,9 @@ square_height = SmallestValue // 8
 square_width = SmallestValue // 8
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+transparent = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+
+
 def ClearVariables():
     global PieceDropped
     PieceDropped = 0
@@ -27,9 +31,9 @@ def ClearVariables():
     global Dragmode
     Dragmode = 0
     global OldSquare
-    OldSquare = 0
+    OldSquare = -1
     global NewSquare
-    NewSquare = 0
+    NewSquare = -1
     global DraggedPiece
     DraggedPiece = 0
 
@@ -102,7 +106,7 @@ def SummonPieceFromName(name, piece_x, piece_y):
         screen.blit(WhiteQueen_png, (piece_x, piece_y))
     elif name == BlackQueen:
         screen.blit(BlackQueen_png, (piece_x, piece_y))
-
+        
 def DrawPieces():
     for i in range(64):
         file = i % 8
@@ -168,6 +172,7 @@ def RemovePieceFromClickedSquare():
     global Dragmode
     global DraggedPiece
     ClickedSquare = GetSquareUnderMouse()
+    transparent.fill((0, 0, 0, 0))
     if board[ClickedSquare] != Empty:
         file = ClickedSquare % 8
         rank = ClickedSquare // 8
@@ -194,21 +199,43 @@ def PutPieceUnderMouseCurser():
 
 def PutPieceOnNewSquare():
     global Dragmode
+    global OldSquare
+    global NewSquare
     if Dragmode == 1:
         OldSquare = ClickedSquare
         NewSquare = GetSquareUnderMouse()
-        if board[NewSquare] == Empty:
-            pygame.mixer.music.load("chess/sounds/move.mp3")
-            pygame.mixer.music.play()
-        else:
-            pygame.mixer.music.load("chess/sounds/capture.mp3")
-            pygame.mixer.music.play()
         if OldSquare != NewSquare:
+            if board[NewSquare] == Empty:
+                pygame.mixer.music.load("chess/sounds/move.mp3")
+                pygame.mixer.music.play()
+            else:
+                pygame.mixer.music.load("chess/sounds/capture.mp3")
+                pygame.mixer.music.play()
             board[NewSquare] = DraggedPiece
             board[OldSquare] = Empty
+        else:
+            board[OldSquare] = DraggedPiece
+            OldSquare = -1
+            NewSquare = -1
         Dragmode = 0
+        HighlightMoveSquares()
+
+def HighlightSquare(squarenumber):
+    file = squarenumber % 8
+    rank = squarenumber // 8
+    square_x = file * square_width
+    square_y = rank * square_height
+    square = pygame.Rect((square_x, square_y, square_width, square_height))
+    pygame.draw.rect(transparent, SquareHighlightColor, square)
     
-            
+def HighlightMoveSquares():
+    global PervHighlightSquare
+    global PervHighlightSquare2
+    HighlightSquare(OldSquare)
+    HighlightSquare(NewSquare)
+    PervHighlightSquare = OldSquare
+    PervHighlightSquare2 = NewSquare
+
 WhiteKing_png = pygame.image.load("chess/images/wK.png")
 WhiteKing_png = pygame.transform.scale(WhiteKing_png, (int(square_width), int(square_height)))
 BlackKing_png = pygame.image.load("chess/images/bK.png")
@@ -267,9 +294,9 @@ while run:
             
         if event.type == pygame.MOUSEBUTTONUP:
             PutPieceOnNewSquare()
-            
-        
+    
     if MoveChosen == 1:
+        screen.blit(transparent, (0, 0))
         DrawPieces()
         MoveChosen = 0
         
@@ -279,6 +306,8 @@ while run:
         PutPieceUnderMouseCurser()
     else:
         CreateGraphicalBoard()
+        HighlightMoveSquares()
+        screen.blit(transparent, (0, 0))
         DrawPieces()
     
     pygame.display.flip()
