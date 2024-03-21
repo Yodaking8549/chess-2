@@ -26,6 +26,10 @@ def ClearVariables():
     ClickedSquare = 0
     global Dragmode
     Dragmode = 0
+    global OldSquare
+    OldSquare = 0
+    global NewSquare
+    NewSquare = 0
 
 def CreateGraphicalBoard():
     rank = 0
@@ -158,8 +162,16 @@ def PutPieceUnderMouseCurser():
     piece_y = pygame.mouse.get_pos()[1] - square_height / 2
     SummonPieceFromBoardArray(ClickedSquare, piece_x, piece_y)
 
-        
-
+def PutPieceOnNewSquare():
+    global Dragmode
+    if Dragmode == 1:
+        OldSquare = ClickedSquare
+        NewSquare = GetSquareUnderMouse()
+        if OldSquare != NewSquare:
+            board[NewSquare] = board[OldSquare]
+            board[OldSquare] = Empty
+        Dragmode = 0
+            
 WhiteKing_png = pygame.image.load("chess/images/wK.png")
 WhiteKing_png = pygame.transform.scale(WhiteKing_png, (int(square_width), int(square_height)))
 BlackKing_png = pygame.image.load("chess/images/bK.png")
@@ -217,7 +229,8 @@ while run:
             RemovePieceFromClickedSquare()
             
         if event.type == pygame.MOUSEBUTTONUP:
-            Dragmode = 0
+            PutPieceOnNewSquare()
+            
         
     if MoveChosen == 1:
         DrawPieces()
@@ -227,6 +240,9 @@ while run:
         CreateGraphicalBoard()
         DrawPieces()
         PutPieceUnderMouseCurser()
+    else:
+        CreateGraphicalBoard()
+        DrawPieces()
     
     pygame.display.flip()
 pygame.quit()
