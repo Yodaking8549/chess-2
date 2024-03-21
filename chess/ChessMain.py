@@ -1,6 +1,6 @@
 import pygame
-import afplay
 pygame.init()
+pygame.mixer.init()
 
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 1200
@@ -198,9 +198,11 @@ def PutPieceOnNewSquare():
         OldSquare = ClickedSquare
         NewSquare = GetSquareUnderMouse()
         if board[NewSquare] == Empty:
-            afplay("chess/sounds/move.mp3")
+            pygame.mixer.music.load("chess/sounds/move.mp3")
+            pygame.mixer.music.play()
         else:
-            afplay("chess/sounds/capture.mp3")
+            pygame.mixer.music.load("chess/sounds/capture.mp3")
+            pygame.mixer.music.play()
         if OldSquare != NewSquare:
             board[NewSquare] = DraggedPiece
             board[OldSquare] = Empty
