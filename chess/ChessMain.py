@@ -8,6 +8,7 @@ StartFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 lightColor = 240, 216, 192
 darkColor = 168, 121, 101
 SquareHighlightColor = 217, 162, 13, 120
+turn = "w"
     
 if SCREEN_WIDTH <= SCREEN_HEIGHT:
     SmallestValue = SCREEN_WIDTH
@@ -201,24 +202,28 @@ def PutPieceOnNewSquare():
     global Dragmode
     global OldSquare
     global NewSquare
-    if Dragmode == 1:
-        OldSquare = ClickedSquare
-        NewSquare = GetSquareUnderMouse()
-        if OldSquare != NewSquare:
-            if board[NewSquare] == Empty:
-                pygame.mixer.music.load("chess/sounds/move.mp3")
-                pygame.mixer.music.play()
+    global Move
+    OldSquare = ClickedSquare
+    NewSquare = GetSquareUnderMouse()
+    legal_moves = GetLegalMoves()
+    Move = str(OldSquare) + str(NewSquare)
+    if Move in str(legal_moves):
+        if Dragmode == 1:
+            if OldSquare != NewSquare:
+                if board[NewSquare] == Empty:
+                    pygame.mixer.music.load("chess/sounds/move.mp3")
+                    pygame.mixer.music.play()
+                else:
+                    pygame.mixer.music.load("chess/sounds/capture.mp3")
+                    pygame.mixer.music.play()
+                board[NewSquare] = DraggedPiece
+                board[OldSquare] = Empty
             else:
-                pygame.mixer.music.load("chess/sounds/capture.mp3")
-                pygame.mixer.music.play()
-            board[NewSquare] = DraggedPiece
-            board[OldSquare] = Empty
-        else:
-            board[OldSquare] = DraggedPiece
-            OldSquare = -1
-            NewSquare = -1
-        Dragmode = 0
-        HighlightMoveSquares()
+                board[OldSquare] = DraggedPiece
+                OldSquare = -1
+                NewSquare = -1
+            Dragmode = 0
+            HighlightMoveSquares()
 
 def HighlightSquare(squarenumber):
     file = squarenumber % 8
@@ -235,6 +240,54 @@ def HighlightMoveSquares():
     HighlightSquare(NewSquare)
     PervHighlightSquare = OldSquare
     PervHighlightSquare2 = NewSquare
+
+def GetLegalMoves():
+    legal_moves = []
+    for i in range(64):
+        if turn == "w":
+            if board[i] == WhiteKing:
+                legal_moves += GetKingMoves(i)
+            elif board[i] == WhitePawn:
+                legal_moves += GetPawnMoves(i)
+            elif board[i] == WhiteKnight:
+                legal_moves += GetKnightMoves(i)
+            elif board[i] == WhiteBishop:
+                legal_moves += GetBishopMoves(i)
+            elif board[i] == WhiteRook:
+                legal_moves += GetRookMoves(i)
+            elif board[i] == WhiteQueen:
+                legal_moves += GetQueenMoves(i)
+        else:
+            if board[i] == BlackKing:
+                legal_moves += GetKingMoves(i)
+            elif board[i] == BlackPawn:
+                legal_moves += GetPawnMoves(i)
+            elif board[i] == BlackKnight:
+                legal_moves += GetKnightMoves(i)
+            elif board[i] == BlackBishop:
+                legal_moves += GetBishopMoves(i)
+            elif board[i] == BlackRook:
+                legal_moves += GetRookMoves(i)
+            elif board[i] == BlackQueen:
+                legal_moves += GetQueenMoves(i)
+
+def GetPawnMoves(i):
+    pass
+
+def GetKnightMoves():
+    pass
+
+def GetBishopMoves():
+    pass
+
+def GetRookMoves():
+    pass
+
+def GetQueenMoves():
+    pass
+
+def GetKingMoves():
+    pass
 
 WhiteKing_png = pygame.image.load("chess/images/wK.png")
 WhiteKing_png = pygame.transform.scale(WhiteKing_png, (int(square_width), int(square_height)))
@@ -290,7 +343,11 @@ while run:
         if event.type == pygame.QUIT:
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
-            RemovePieceFromClickedSquare()
+            if event.button == 1:
+                RemovePieceFromClickedSquare()
+            if event.button == 3:
+                mousesquare = GetSquareUnderMouse()
+                print(mousesquare)
             
         if event.type == pygame.MOUSEBUTTONUP:
             PutPieceOnNewSquare()
