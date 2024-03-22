@@ -179,24 +179,27 @@ def RemovePieceFromClickedSquare():
     global DraggedPiece
     ClickedSquare = GetSquareUnderMouse()
     transparent.fill((0, 0, 0, 0))
-    if board[ClickedSquare] != Empty:
-        file = ClickedSquare % 8
-        rank = ClickedSquare // 8
-        
-        if (file + rank) % 2 == 0:
-            SquareColor = lightColor
-        else:
-            SquareColor = darkColor
-        
-        square_x = file * square_width
-        square_y = rank * square_height
+    if turn == "w" and board[ClickedSquare][0] == "w" or turn == "b" and board[ClickedSquare][0] == "b":
+        if board[ClickedSquare] != Empty:
+            file = ClickedSquare % 8
+            rank = ClickedSquare // 8
+            
+            if (file + rank) % 2 == 0:
+                SquareColor = lightColor
+            else:
+                SquareColor = darkColor
+            
+            square_x = file * square_width
+            square_y = rank * square_height
 
-        square = pygame.Rect((square_x, square_y, square_width, square_height))
-        pygame.draw.rect(screen, SquareColor, square)
-        
-        Dragmode = 1
-        DraggedPiece = board[ClickedSquare]
-        displayingboard[ClickedSquare] = Empty
+            square = pygame.Rect((square_x, square_y, square_width, square_height))
+            pygame.draw.rect(screen, SquareColor, square)
+            
+            Dragmode = 1
+            DraggedPiece = board[ClickedSquare]
+            displayingboard[ClickedSquare] = Empty
+    elif board[ClickedSquare] != Empty:
+        print("Not your turn")
         
 def PutPieceUnderMouseCurser():
     piece_x = pygame.mouse.get_pos()[0] - square_width / 2
@@ -209,10 +212,10 @@ def PutPieceOnNewSquare():
     global NewSquare
     global Move
     global legal_move
+    global turn
     OldSquare = ClickedSquare
     NewSquare = GetSquareUnderMouse()
     GetLegalMoves()
-    print(legal_moves)
     Move = str(OldSquare) + str(NewSquare)
     if Move in str(legal_moves):
         if Dragmode == 1:
@@ -228,6 +231,10 @@ def PutPieceOnNewSquare():
                 board[OldSquare] = Empty
                 displayingboard[NewSquare] = DraggedPiece
                 displayingboard[OldSquare] = Empty
+                if turn == "w":
+                    turn = "b"
+                elif turn == "b":
+                    turn = "w"
             else:
                 board[OldSquare] = DraggedPiece
                 displayingboard[OldSquare] = DraggedPiece
@@ -268,41 +275,55 @@ def GetLegalMoves():
     for i in range(64):
         if turn == "w":
             if board[i] == WhiteKing:
-                legal_moves += GetKingMoves(i)
+                GetKingMoves(i)
             elif board[i] == WhitePawn:
                 GetPawnMoves(i)
             elif board[i] == WhiteKnight:
-                legal_moves += GetKnightMoves(i)
+                GetKnightMoves(i)
             elif board[i] == WhiteBishop:
-                legal_moves += GetBishopMoves(i)
+                GetBishopMoves(i)
             elif board[i] == WhiteRook:
-                legal_moves += GetRookMoves(i)
+                GetRookMoves(i)
             elif board[i] == WhiteQueen:
-                legal_moves += GetQueenMoves(i)
-        else:
+                GetQueenMoves(i)
+        elif turn == "b":
             if board[i] == BlackKing:
-                legal_moves += GetKingMoves(i)
+                GetKingMoves(i)
             elif board[i] == BlackPawn:
-                legal_moves += GetPawnMoves(i)
+                GetPawnMoves(i)
             elif board[i] == BlackKnight:
-                legal_moves += GetKnightMoves(i)
+                GetKnightMoves(i)
             elif board[i] == BlackBishop:
-                legal_moves += GetBishopMoves(i)
+                GetBishopMoves(i)
             elif board[i] == BlackRook:
-                legal_moves += GetRookMoves(i)
+                GetRookMoves(i)
             elif board[i] == BlackQueen:
-                legal_moves += GetQueenMoves(i)
-
+                GetQueenMoves(i)
+        else:
+            pass
 def GetPawnMoves(i):
     global legal_moves
+    global turn
     rank = i // 8
-    print(rank)
     file = i % 8
     if turn == "w":
         if board[i - 8] == Empty:
             legal_moves.append(str(i) + str(i - 8))
             if board[i - 16] == Empty and rank == 6:
                 legal_moves.append(str(i) + str(i - 16))
+        if board[i - 7] != Empty and file != 0:
+            legal_moves.append(str(i) + str(i - 7))
+        if board[i - 9] != Empty and file != 7:
+            legal_moves.append(str(i) + str(i - 9))
+    elif turn == "b":
+        if board[i + 8] == Empty:
+            legal_moves.append(str(i) + str(i + 8))
+            if board[i + 16] == Empty and rank == 1:
+                legal_moves.append(str(i) + str(i + 16))
+        if board[i + 7] != Empty and file != 7:
+            legal_moves.append(str(i) + str(i + 7))
+        if board[i + 9] != Empty and file != 0:
+            legal_moves.append(str(i) + str(i + 9))
 
 def GetKnightMoves():
     pass
@@ -382,7 +403,8 @@ while run:
                 print(mousesquare)
             
         if event.type == pygame.MOUSEBUTTONUP:
-            PutPieceOnNewSquare()
+            if Dragmode == 1:
+                PutPieceOnNewSquare()
     
     if MoveChosen == 1:
         screen.blit(transparent, (0, 0))
