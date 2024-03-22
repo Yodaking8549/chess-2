@@ -4,7 +4,7 @@ pygame.mixer.init()
 
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 1200
-StartFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+StartFEN = "8/pppppppp/8/8/8/8/PPPPPPPP/8"
 lightColor = 240, 216, 192
 darkColor = 168, 121, 101
 SquareHighlightColor = 217, 162, 13, 120
@@ -37,6 +37,9 @@ def ClearVariables():
     NewSquare = -1
     global DraggedPiece
     DraggedPiece = 0
+    global legal_move
+    legal_move = 0
+
 
 def CreateGraphicalBoard():
     rank = 0
@@ -57,29 +60,29 @@ def CreateGraphicalBoard():
             rank += 1
 
 def SummonPieceFromBoardArray(n, piece_x, piece_y):
-    if board[n] == WhiteKing:
+    if displayingboard[n] == WhiteKing:
         screen.blit(WhiteKing_png, (piece_x, piece_y))
-    elif board[n] == BlackKing:
+    elif displayingboard[n] == BlackKing:
         screen.blit(BlackKing_png, (piece_x, piece_y))
-    elif board[n] == WhitePawn:
+    elif displayingboard[n] == WhitePawn:
         screen.blit(WhitePawn_png, (piece_x, piece_y))
-    elif board[n] == BlackPawn:
+    elif displayingboard[n] == BlackPawn:
         screen.blit(BlackPawn_png, (piece_x, piece_y))
-    elif board[n] == WhiteKnight:
+    elif displayingboard[n] == WhiteKnight:
         screen.blit(WhiteKnight_png, (piece_x, piece_y))
-    elif board[n] == BlackKnight:
+    elif displayingboard[n] == BlackKnight:
         screen.blit(BlackKnight_png, (piece_x, piece_y))
-    elif board[n] == WhiteBishop:
+    elif displayingboard[n] == WhiteBishop:
         screen.blit(WhiteBishop_png, (piece_x, piece_y))
-    elif board[n] == BlackBishop:
+    elif displayingboard[n] == BlackBishop:
         screen.blit(BlackBishop_png, (piece_x, piece_y))
-    elif board[n] == WhiteRook:
+    elif displayingboard[n] == WhiteRook:
         screen.blit(WhiteRook_png, (piece_x, piece_y))
-    elif board[n] == BlackRook:
+    elif displayingboard[n] == BlackRook:
         screen.blit(BlackRook_png, (piece_x, piece_y))
-    elif board[n] == WhiteQueen:
+    elif displayingboard[n] == WhiteQueen:
         screen.blit(WhiteQueen_png, (piece_x, piece_y))
-    elif board[n] == BlackQueen:
+    elif displayingboard[n] == BlackQueen:
         screen.blit(BlackQueen_png, (piece_x, piece_y))
 
 def SummonPieceFromName(name, piece_x, piece_y):
@@ -128,39 +131,41 @@ def FenToBoard(fen):
         elif fen[i].isdigit():
             for j in range(int(fen[i])):
                 board[rank * 8 + file] = Empty
+                displayingboard[rank * 8 + file] = Empty
                 file += 1
         else:
             board[rank * 8 + file] = fen[i]
+            displayingboard[rank * 8 + file] = fen[i]
             file += 1
 
-def MakeBoardUsable():
-    for i in range(len(board)):
-        if board[i] == "0":
-            board[i] = "0"
-        elif board[i] == "K":
-            board[i] = WhiteKing
-        elif board[i] == "k":
-            board[i] = BlackKing
-        elif board[i] == "P":
-            board[i] = WhitePawn
-        elif board[i] == "p":
-            board[i] = BlackPawn
-        elif board[i] == "N":
-            board[i] = WhiteKnight
-        elif board[i] == "n":
-            board[i] = BlackKnight
-        elif board[i] == "B":
-            board[i] = WhiteBishop
-        elif board[i] == "b":
-            board[i] = BlackBishop
-        elif board[i] == "R":
-            board[i] = WhiteRook
-        elif board[i] == "r":
-            board[i] = BlackRook
-        elif board[i] == "Q":
-            board[i] = WhiteQueen
-        elif board[i] == "q":
-            board[i] = BlackQueen
+def MakeBoardListUsable(listname):
+    for i in range(len(listname)):
+        if listname[i] == "0":
+            listname[i] = "0"
+        elif listname[i] == "K":
+            listname[i] = WhiteKing
+        elif listname[i] == "k":
+            listname[i] = BlackKing
+        elif listname[i] == "P":
+            listname[i] = WhitePawn
+        elif listname[i] == "p":
+            listname[i] = BlackPawn
+        elif listname[i] == "N":
+            listname[i] = WhiteKnight
+        elif listname[i] == "n":
+            listname[i] = BlackKnight
+        elif listname[i] == "B":
+            listname[i] = WhiteBishop
+        elif listname[i] == "b":
+            listname[i] = BlackBishop
+        elif listname[i] == "R":
+            listname[i] = WhiteRook
+        elif listname[i] == "r":
+            listname[i] = BlackRook
+        elif listname[i] == "Q":
+            listname[i] = WhiteQueen
+        elif listname[i] == "q":
+            listname[i] = BlackQueen
     
 def GetSquareUnderMouse():
     x, y = pygame.mouse.get_pos()
@@ -191,7 +196,7 @@ def RemovePieceFromClickedSquare():
         
         Dragmode = 1
         DraggedPiece = board[ClickedSquare]
-        board[ClickedSquare] = Empty
+        displayingboard[ClickedSquare] = Empty
         
 def PutPieceUnderMouseCurser():
     piece_x = pygame.mouse.get_pos()[0] - square_width / 2
@@ -203,12 +208,15 @@ def PutPieceOnNewSquare():
     global OldSquare
     global NewSquare
     global Move
+    global legal_move
     OldSquare = ClickedSquare
     NewSquare = GetSquareUnderMouse()
-    legal_moves = GetLegalMoves()
+    GetLegalMoves()
+    print(legal_moves)
     Move = str(OldSquare) + str(NewSquare)
     if Move in str(legal_moves):
         if Dragmode == 1:
+            legal_move = 1
             if OldSquare != NewSquare:
                 if board[NewSquare] == Empty:
                     pygame.mixer.music.load("chess/sounds/move.mp3")
@@ -218,12 +226,25 @@ def PutPieceOnNewSquare():
                     pygame.mixer.music.play()
                 board[NewSquare] = DraggedPiece
                 board[OldSquare] = Empty
+                displayingboard[NewSquare] = DraggedPiece
+                displayingboard[OldSquare] = Empty
             else:
                 board[OldSquare] = DraggedPiece
+                displayingboard[OldSquare] = DraggedPiece
                 OldSquare = -1
                 NewSquare = -1
             Dragmode = 0
             HighlightMoveSquares()
+    else:
+        if Dragmode == 1:
+            board[OldSquare] = DraggedPiece
+            displayingboard[OldSquare] = DraggedPiece
+            Dragmode = 0
+            legal_move = 0
+            pygame.mixer.music.load("chess/sounds/illegal.mp3")
+            pygame.mixer.music.play()
+        else:
+            pass
 
 def HighlightSquare(squarenumber):
     file = squarenumber % 8
@@ -242,13 +263,14 @@ def HighlightMoveSquares():
     PervHighlightSquare2 = NewSquare
 
 def GetLegalMoves():
+    global legal_moves
     legal_moves = []
     for i in range(64):
         if turn == "w":
             if board[i] == WhiteKing:
                 legal_moves += GetKingMoves(i)
             elif board[i] == WhitePawn:
-                legal_moves += GetPawnMoves(i)
+                GetPawnMoves(i)
             elif board[i] == WhiteKnight:
                 legal_moves += GetKnightMoves(i)
             elif board[i] == WhiteBishop:
@@ -272,7 +294,15 @@ def GetLegalMoves():
                 legal_moves += GetQueenMoves(i)
 
 def GetPawnMoves(i):
-    pass
+    global legal_moves
+    rank = i // 8
+    print(rank)
+    file = i % 8
+    if turn == "w":
+        if board[i - 8] == Empty:
+            legal_moves.append(str(i) + str(i - 8))
+            if board[i - 16] == Empty and rank == 6:
+                legal_moves.append(str(i) + str(i - 16))
 
 def GetKnightMoves():
     pass
@@ -330,11 +360,13 @@ WhiteQueen = "wQ"
 BlackQueen = "bQ"
 
 board = [0 for row in range(64)]
+displayingboard = [0 for row in range(64)]
 
 ClearVariables()
 CreateGraphicalBoard()
 FenToBoard(StartFEN)
-MakeBoardUsable()
+MakeBoardListUsable(board)
+MakeBoardListUsable(displayingboard)
 DrawPieces()
 
 run = True
@@ -363,8 +395,9 @@ while run:
         PutPieceUnderMouseCurser()
     else:
         CreateGraphicalBoard()
-        HighlightMoveSquares()
-        screen.blit(transparent, (0, 0))
+        if legal_move == 1:
+            HighlightMoveSquares()
+            screen.blit(transparent, (0, 0))
         DrawPieces()
     
     pygame.display.flip()
