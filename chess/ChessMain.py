@@ -248,8 +248,9 @@ def PutPieceOnNewSquare():
             displayingboard[OldSquare] = DraggedPiece
             Dragmode = 0
             legal_move = 0
-            pygame.mixer.music.load("chess/sounds/illegal.mp3")
-            pygame.mixer.music.play()
+            if OldSquare != NewSquare:
+                pygame.mixer.music.load("chess/sounds/illegal.mp3")
+                pygame.mixer.music.play()
         else:
             pass
 
@@ -309,7 +310,7 @@ def GetPawnMoves(i):
     if turn == "w":
         if board[i - 8] == Empty:
             legal_moves.append(str(i) + str(i - 8))
-            if board[i - 16] == Empty and rank == 6:
+            if rank == 6 and board[i - 16] == Empty:
                 legal_moves.append(str(i) + str(i - 16))
         if board[i - 7] != Empty and file != 0:
             legal_moves.append(str(i) + str(i - 7))
@@ -318,12 +319,14 @@ def GetPawnMoves(i):
     elif turn == "b":
         if board[i + 8] == Empty:
             legal_moves.append(str(i) + str(i + 8))
-            if board[i + 16] == Empty and rank == 1:
+            if rank == 1 and board[i - 16] == Empty:
                 legal_moves.append(str(i) + str(i + 16))
-        if board[i + 7] != Empty and file != 7:
-            legal_moves.append(str(i) + str(i + 7))
-        if board[i + 9] != Empty and file != 0:
-            legal_moves.append(str(i) + str(i + 9))
+        if rank != 1 and file != 0:
+            if board[i + 7] != Empty and file != 7:
+                legal_moves.append(str(i) + str(i + 7))
+        if rank != 1 and file != 7:
+            if board[i + 9] != Empty and file != 0:
+                legal_moves.append(str(i) + str(i + 9))
 
 def GetKnightMoves():
     pass
