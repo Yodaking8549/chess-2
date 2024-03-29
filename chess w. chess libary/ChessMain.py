@@ -1,16 +1,18 @@
 import pygame
 import chess
+import time
 pygame.init()
 pygame.mixer.init()
 
 SCREEN_WIDTH = 1200
 SCREEN_HEIGHT = 1200
-StartFEN = "8/pppppppp/8/8/8/8/PPPPPPPP/8"
+StartFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 lightColor = 240, 216, 192
 darkColor = 168, 121, 101
-MoveSquareHighlightColor = 217, 162, 13, 120
+MoveSquareHighlightColor = 217, 162, 13, 100
 PossibleMovesSquareHighlightColor = 0, 255, 0, 120
 HighlightPossibleMoves = 0
+MemeMode = 0
     
 if SCREEN_WIDTH <= SCREEN_HEIGHT:
     SmallestValue = SCREEN_WIDTH
@@ -147,40 +149,40 @@ def SummonPieceFromName(name, piece_x, piece_y):
     elif name == BlackQueen:
         screen.blit(BlackQueen_png, (piece_x, piece_y))
     
-def GetSquareUnderMouse():
+def GetSquareUnderMouse() -> int:
     x, y = pygame.mouse.get_pos()
     file = x // square_width
     rank = y // square_height
     return rank * 8 + file
 
 def RemovePieceFromClickedSquare():
-    global ClickedSquare
-    global Dragmode
-    global DraggedPiece
-    ClickedSquare = GetSquareUnderMouse()
-    transparent.fill((0, 0, 0, 0))
-    if turn == chess.WHITE and displayingboard[ClickedSquare][0] == "w" or turn == chess.BLACK and displayingboard[ClickedSquare][0] == "b":
-        if displayingboard[ClickedSquare] != Empty:
-            file = ClickedSquare % 8
-            rank = ClickedSquare // 8
-            
-            if (file + rank) % 2 == 0:
-                SquareColor = lightColor
-            else:
-                SquareColor = darkColor
-            
-            square_x = file * square_width
-            square_y = rank * square_height
+    if GameOver == False:
+        global ClickedSquare
+        global Dragmode
+        global DraggedPiece
+        ClickedSquare = GetSquareUnderMouse()
+        if turn == chess.WHITE and displayingboard[ClickedSquare][0] == "w" or turn == chess.BLACK and displayingboard[ClickedSquare][0] == "b":
+            if displayingboard[ClickedSquare] != Empty:
+                file = ClickedSquare % 8
+                rank = ClickedSquare // 8
+                
+                if (file + rank) % 2 == 0:
+                    SquareColor = lightColor
+                else:
+                    SquareColor = darkColor
+                
+                square_x = file * square_width
+                square_y = rank * square_height
 
-            square = pygame.Rect((square_x, square_y, square_width, square_height))
-            pygame.draw.rect(screen, SquareColor, square)
+                square = pygame.Rect((square_x, square_y, square_width, square_height))
+                pygame.draw.rect(screen, SquareColor, square)
+                
+                Dragmode = 1
+                DraggedPiece = displayingboard[ClickedSquare]
+                displayingboard[ClickedSquare] = Empty
+        elif displayingboard[ClickedSquare] != Empty:
+            print("Not your turn")
             
-            Dragmode = 1
-            DraggedPiece = displayingboard[ClickedSquare]
-            displayingboard[ClickedSquare] = Empty
-    elif displayingboard[ClickedSquare] != Empty:
-        print("Not your turn")
-        
 def PutPieceUnderMouseCurser():
     piece_x = pygame.mouse.get_pos()[0] - square_width / 2
     piece_y = pygame.mouse.get_pos()[1] - square_height / 2
@@ -193,6 +195,7 @@ def PutPieceOnNewSquare():
     global Move
     global legal_move
     global turn
+    global playsound
     SquareDict = {
         0: "a8", 1: "b8", 2: "c8", 3: "d8", 4: "e8", 5: "f8", 6: "g8", 7: "h8",
         8: "a7", 9: "b7", 10: "c7", 11: "d7", 12: "e7", 13: "f7", 14: "g7", 15: "h7",
@@ -207,26 +210,26 @@ def PutPieceOnNewSquare():
     NewSquare = GetSquareUnderMouse()
     DynamicOldSquare = SquareDict[OldSquare]
     DynamicNewSquare = SquareDict[NewSquare]
+    playsound = "No Sound"
     if OldSquare != NewSquare:
         Move = chess.Move.from_uci(DynamicOldSquare + DynamicNewSquare)
         if Move in board.legal_moves:
             legal_move = 1
             if IsCapture() == False:
-                pygame.mixer.music.load("chess w. chess libary/sounds/move.mp3")
-                pygame.mixer.music.play()
+                playsound = "Move"
             else:
-                pygame.mixer.music.load("chess w. chess libary/sounds/capture.mp3")
-                pygame.mixer.music.play()
+                playsound = "Capture"
             board.push(Move)
             turn = not turn
+            if board.is_check() == True:
+                playsound = "Check"
             Dragmode = 0
         else:
             if Dragmode == 1:
                 displayingboard[OldSquare] = DraggedPiece
                 Dragmode = 0
                 if OldSquare != NewSquare:
-                    pygame.mixer.music.load("chess w. chess libary/sounds/illegal.mp3")
-                    pygame.mixer.music.play()
+                    playsound = "Illegal"
             legal_move = 0
     else:
         displayingboard[OldSquare] = DraggedPiece
@@ -243,7 +246,9 @@ def HighlightSquare(squarenumber, color):
     pygame.draw.rect(transparent, color, square)
     
 def HighlightMoveSquares():
-    pass
+    if legal_move == 1:
+        HighlightSquare(OldSquare, MoveSquareHighlightColor)
+        HighlightSquare(NewSquare, MoveSquareHighlightColor)
     
 def MarkLegalMoves():
     if HighlightPossibleMoves == 1:
@@ -253,17 +258,77 @@ def MarkLegalMoves():
 def IsCapture() -> bool:
     if displayingboard[NewSquare] != Empty:
         return True
-    # elif has_legal_en_passant() == True:
-    #     if ep_squre == NewSquare:
-    #         return True
+    elif board.has_legal_en_passant() == True:
+        if board.ep_squre == NewSquare:
+            return True
     else:    
         return False
-
+    
+def PlaySound():
+    global GameOver
+    global CountCheckmateSoundTimer
+    if playsound == "Illegal":
+        sounds[IllegalSound].play()
+    elif playsound == "Capture":
+        sounds[CaptureSound].play()
+    elif playsound == "Move":
+        sounds[MoveSound].play()
+    elif playsound == "Check":
+        sounds[CheckSound].play()
+        if board.is_checkmate() == True:
+            GameOver = True
+            CountCheckmateSoundTimer = 1
+            
+def CheckmateSoundHandler():
+    global CheckmateSoundTimer
+    global CountCheckmateSoundTimer
+    if CountCheckmateSoundTimer == 1:
+        CheckmateSoundTimer += 1
+        if CheckmateSoundTimer == 13:
+            sounds[CheckmateSound].play()
+            if MemeMode == 1:
+                sounds[BackgroundMusic].stop()
+            CountCheckmateSoundTimer = 0
+            CheckmateSoundTimer = 0         
+            
+def BGMusicSoundHandler():
+    global BGMusicSoundTimer
+    global CountBGMusicSoundTimer
+    if MemeMode == 1:
+        if CountBGMusicSoundTimer == 1:
+            BGMusicSoundTimer += 1
+            if BGMusicSoundTimer == 300:
+                sounds[BackgroundMusic].play()
+                CountBGMusicSoundTimer = 0
+                BGMusicSoundTimer = 0
+   
 def ClearVariables():
     global Dragmode
     Dragmode = 0
     global EnPassantSquare
     EnPassantSquare = -1
+    global PlaySound
+    playsound = "No Sound"
+    global CheckmateSoundTimer
+    CheckmateSoundTimer = 0
+    global CountCheckmateSoundTimer
+    CountCheckmateSoundTimer = 0
+    global OldSquare
+    OldSquare = -1
+    global NewSquare
+    NewSquare = -1
+    global ClickedSquare
+    ClickedSquare = -1
+    global DraggedPiece
+    DraggedPiece = Empty
+    global Move
+    Move = None
+    global legal_move
+    legal_move = 0
+    global BGMusicSoundTimer
+    BGMusicSoundTimer = 0
+    global GameOver
+    GameOver = False
             
 def ReloadDisplayingBoardlistFromFEN():
     BoardFENToDisplayingBoard(board.fen())
@@ -308,6 +373,38 @@ WhiteRook = "wR"
 BlackRook = "bR"
 WhiteQueen = "wQ"
 BlackQueen = "bQ"
+if MemeMode == 0:
+    SoundFiles = ["chess w. chess libary/sounds/illegal.mp3",
+                "chess w. chess libary/sounds/capture.mp3", 
+                "chess w. chess libary/sounds/move.mp3", 
+                "chess w. chess libary/sounds/check.mp3",
+                "chess w. chess libary/sounds/game-end.mp3", 
+                "chess w. chess libary/sounds/promote.mp3", 
+                "chess w. chess libary/sounds/castle.mp3",
+                "chess w. chess libary/sounds/game-start.mp3"]
+elif MemeMode == 1:
+    SoundFiles = ["chess w. chess libary/sounds/illegal.mp3",
+                "chess w. chess libary/sounds/capture.mp3", 
+                "chess w. chess libary/sounds/move.mp3", 
+                "chess w. chess libary/sounds/check.mp3",
+                "chess w. chess libary/sounds/memeSounds/game-end.mp3", 
+                "chess w. chess libary/sounds/promote.mp3", 
+                "chess w. chess libary/sounds/castle.mp3",
+                "chess w. chess libary/sounds/memeSounds/game-start.mp3",
+                "chess w. chess libary/sounds/memeSounds/background-music.mp3"]
+sounds = [pygame.mixer.Sound(i) for i in SoundFiles]
+IllegalSound = 0
+CaptureSound = 1
+MoveSound = 2
+CheckSound = 3
+CheckmateSound = 4
+PromoteSound = 5
+CastleSound = 6
+GameStartSound = 7
+if MemeMode == 1:
+    BackgroundMusic = 8
+    CountBGMusicSoundTimer = 1
+
 
 displayingboard = [0 for row in range(64)]
 turn = chess.WHITE
@@ -316,10 +413,13 @@ ClearVariables()
 CreateGraphicalBoard()
 ReloadDisplayingBoardlistFromFEN()
 DrawPieces()
-
+sounds[GameStartSound].play()
 run = True
 while run:
+    BGMusicSoundHandler()
+    CheckmateSoundHandler()
     CreateGraphicalBoard()
+    screen.blit(transparent, (0, 0))
     DrawPieces()
     
     for event in pygame.event.get():
@@ -328,6 +428,8 @@ while run:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 RemovePieceFromClickedSquare()
+                if GameOver == False:
+                    transparent.fill((0, 0, 0, 0))
             if event.button == 3:
                 mousesquare = GetSquareUnderMouse() # Gets the square number under the mouse (For Testing Purposes)
                 print(mousesquare)
@@ -335,6 +437,8 @@ while run:
         if event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
                 PutPieceOnNewSquare()
+                PlaySound()
+                HighlightMoveSquares()
                 ReloadDisplayingBoardlistFromFEN()
     if Dragmode == 1:
         PutPieceUnderMouseCurser()
