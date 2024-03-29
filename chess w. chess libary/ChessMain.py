@@ -1,6 +1,7 @@
 import pygame
 import chess
 import time
+from ChessEngine import GetAIMove
 pygame.init()
 pygame.mixer.init()
 
@@ -13,7 +14,21 @@ MoveSquareHighlightColor = 217, 162, 13, 100
 PossibleMovesSquareHighlightColor = 0, 255, 0, 120
 HighlightPossibleMoves = 0
 MemeMode = 0
+Gamemode = "PvP"
+if Gamemode == "PvAI":
+    Playercolor = chess.WHITE
+
+if Gamemode == "PvP":
+    Gamemode = 0
+elif Gamemode == "PvAI":
+    Gamemode = 1
+elif Gamemode == "AIvAI":
+    Gamemode = 2
+else:
+    print("Invalid Gamemode")
+    exit()
     
+
 if SCREEN_WIDTH <= SCREEN_HEIGHT:
     SmallestValue = SCREEN_WIDTH
 else:
@@ -160,28 +175,32 @@ def RemovePieceFromClickedSquare():
         global ClickedSquare
         global Dragmode
         global DraggedPiece
-        ClickedSquare = GetSquareUnderMouse()
-        if turn == chess.WHITE and displayingboard[ClickedSquare][0] == "w" or turn == chess.BLACK and displayingboard[ClickedSquare][0] == "b":
-            if displayingboard[ClickedSquare] != Empty:
-                file = ClickedSquare % 8
-                rank = ClickedSquare // 8
-                
-                if (file + rank) % 2 == 0:
-                    SquareColor = lightColor
-                else:
-                    SquareColor = darkColor
-                
-                square_x = file * square_width
-                square_y = rank * square_height
+        if Gamemode == 0 or Gamemode == 1 and turn == Playercolor:
+            ClickedSquare = GetSquareUnderMouse()
+            if turn == chess.WHITE and displayingboard[ClickedSquare][0] == "w" or turn == chess.BLACK and displayingboard[ClickedSquare][0] == "b":
+                if displayingboard[ClickedSquare] != Empty:
+                    file = ClickedSquare % 8
+                    rank = ClickedSquare // 8
+                    
+                    if (file + rank) % 2 == 0:
+                        SquareColor = lightColor
+                    else:
+                        SquareColor = darkColor
+                    
+                    square_x = file * square_width
+                    square_y = rank * square_height
 
-                square = pygame.Rect((square_x, square_y, square_width, square_height))
-                pygame.draw.rect(screen, SquareColor, square)
-                
-                Dragmode = 1
-                DraggedPiece = displayingboard[ClickedSquare]
-                displayingboard[ClickedSquare] = Empty
-        elif displayingboard[ClickedSquare] != Empty:
-            print("Not your turn")
+                    square = pygame.Rect((square_x, square_y, square_width, square_height))
+                    pygame.draw.rect(screen, SquareColor, square)
+                    
+                    Dragmode = 1
+                    DraggedPiece = displayingboard[ClickedSquare]
+                    displayingboard[ClickedSquare] = Empty
+            elif displayingboard[ClickedSquare] != Empty:
+                print("Not your turn")
+        elif Gamemode == 1:
+            pass
+            
             
 def PutPieceUnderMouseCurser():
     piece_x = pygame.mouse.get_pos()[0] - square_width / 2
@@ -220,10 +239,15 @@ def PutPieceOnNewSquare():
             else:
                 playsound = "Capture"
             board.push(Move)
-            turn = not turn
             if board.is_check() == True:
                 playsound = "Check"
             Dragmode = 0
+            if board.is_game_over() == True:
+                GameOver = True
+            else:
+                turn = not turn
+                if Gamemode == 1 and turn != Playercolor or Gamemode == 2:
+                    GetAIMove()
         else:
             if Dragmode == 1:
                 displayingboard[OldSquare] = DraggedPiece
@@ -436,10 +460,11 @@ while run:
             
         if event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
-                PutPieceOnNewSquare()
-                PlaySound()
-                HighlightMoveSquares()
-                ReloadDisplayingBoardlistFromFEN()
+                if Gamemode == 0 or Gamemode == 1 and turn == Playercolor:
+                    PutPieceOnNewSquare()
+                    PlaySound()
+                    HighlightMoveSquares()
+                    ReloadDisplayingBoardlistFromFEN()
     if Dragmode == 1:
         PutPieceUnderMouseCurser()
     pygame.display.flip()
