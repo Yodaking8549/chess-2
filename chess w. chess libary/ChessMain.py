@@ -14,7 +14,7 @@ MoveSquareHighlightColor = 217, 162, 13, 100
 PossibleMovesSquareHighlightColor = 0, 255, 0, 120
 HighlightPossibleMoves = 0
 MemeMode = 0
-Gamemode = "PvP"
+Gamemode = "AIvAI"
 if Gamemode == "PvAI":
     Playercolor = chess.WHITE
 
@@ -246,8 +246,6 @@ def PutPieceOnNewSquare():
                 GameOver = True
             else:
                 turn = not turn
-                if Gamemode == 1 and turn != Playercolor or Gamemode == 2:
-                    GetAIMove()
         else:
             if Dragmode == 1:
                 displayingboard[OldSquare] = DraggedPiece
@@ -440,11 +438,36 @@ DrawPieces()
 sounds[GameStartSound].play()
 run = True
 while run:
+    if GameOver == True:
+        run = False
+        if board.is_checkmate() == True:
+            run = True
+            if turn == chess.WHITE:
+                print("Black Wins By Checkmate")
+            elif turn == chess.BLACK:
+                print("White Wins By Checkmate")
+        if board.is_stalemate() == True:
+            print("Draw By Stalemate")
+        if board.is_insufficient_material() == True:
+            print("Draw By Insufficient Material")
+        if board.is_seventyfive_moves() == True:
+            print("Draw By Seventy Five Moves")
+        if board.is_fivefold_repetition() == True:
+            print("Draw By Fivefold Repetition")
     BGMusicSoundHandler()
     CheckmateSoundHandler()
     CreateGraphicalBoard()
     screen.blit(transparent, (0, 0))
     DrawPieces()
+    if Gamemode == 1 and turn != Playercolor or Gamemode == 2:
+        Move = GetAIMove(board.fen())
+        if Move != "Game Over":
+            board.push(chess.Move.from_uci(Move))
+            turn = not turn
+            ReloadDisplayingBoardlistFromFEN()
+        else:
+            if board.is_game_over() == True:
+                GameOver = True
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
