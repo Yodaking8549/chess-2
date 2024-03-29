@@ -15,7 +15,7 @@ MoveSquareHighlightColor = 217, 162, 13, 100
 PossibleMovesSquareHighlightColor = 0, 255, 0, 120
 HighlightPossibleMoves = 0
 MemeMode = 0
-Gamemode = "PvP"
+Gamemode = "PvAI"
 AIvAITimeDelay = 0.2
 if Gamemode == "PvAI":
     Playercolor = chess.WHITE
@@ -478,10 +478,21 @@ while run:
         run = False
         if board.is_checkmate() == True:
             run = True
-            if turn == chess.WHITE:
-                print("Black Wins By Checkmate")
-            elif turn == chess.BLACK:
-                print("White Wins By Checkmate")
+            if Gamemode == 0:
+                if turn == chess.BLACK:
+                    print("Black Wins By Checkmate")
+                elif turn == chess.WHITE:
+                    print("White Wins By Checkmate")
+            if Gamemode == 1:
+                if turn == Playercolor:
+                    print("You Win By Checkmate")
+                elif turn != Playercolor:
+                    print("You Lose By Checkmate")
+            if Gamemode == 2:
+                if turn == chess.WHITE:
+                    print("Black Wins By Checkmate")
+                elif turn == chess.BLACK:
+                    print("White Wins By Checkmate")
         if board.is_stalemate() == True:
             print("Draw By Stalemate")
         if board.is_insufficient_material() == True:
