@@ -7,7 +7,8 @@ SCREEN_HEIGHT = 1200
 StartFEN = "8/pppppppp/8/8/8/8/PPPPPPPP/8"
 lightColor = 240, 216, 192
 darkColor = 168, 121, 101
-SquareHighlightColor = 217, 162, 13, 120
+MoveSquareHighlightColor = 217, 162, 13, 120
+PossibleSquareHighlightColor = 0, 255, 0, 120
 turn = "w"
     
 if SCREEN_WIDTH <= SCREEN_HEIGHT:
@@ -215,17 +216,17 @@ def PutPieceOnNewSquare():
     global turn
     OldSquare = ClickedSquare
     NewSquare = GetSquareUnderMouse()
-    GetLegalMoves()
     Move = str(OldSquare) + str(NewSquare)
     if Move in str(legal_moves):
+        print(Move)
         if Dragmode == 1:
             legal_move = 1
             if OldSquare != NewSquare:
                 if board[NewSquare] == Empty:
-                    pygame.mixer.music.load("chess/sounds/move.mp3")
+                    pygame.mixer.music.load("chess w. own board interpreter/sounds/move.mp3")
                     pygame.mixer.music.play()
                 else:
-                    pygame.mixer.music.load("chess/sounds/capture.mp3")
+                    pygame.mixer.music.load("chess w. own board interpreter/sounds/capture.mp3")
                     pygame.mixer.music.play()
                 board[NewSquare] = DraggedPiece
                 board[OldSquare] = Empty
@@ -249,59 +250,99 @@ def PutPieceOnNewSquare():
             Dragmode = 0
             legal_move = 0
             if OldSquare != NewSquare:
-                pygame.mixer.music.load("chess/sounds/illegal.mp3")
+                pygame.mixer.music.load("chess w. own board interpreter/sounds/illegal.mp3")
                 pygame.mixer.music.play()
         else:
             pass
 
-def HighlightSquare(squarenumber):
+def HighlightSquare(squarenumber, color):
     file = squarenumber % 8
     rank = squarenumber // 8
     square_x = file * square_width
     square_y = rank * square_height
     square = pygame.Rect((square_x, square_y, square_width, square_height))
-    pygame.draw.rect(transparent, SquareHighlightColor, square)
+    pygame.draw.rect(transparent, color, square)
     
 def HighlightMoveSquares():
     global PervHighlightSquare
     global PervHighlightSquare2
-    HighlightSquare(OldSquare)
-    HighlightSquare(NewSquare)
+    HighlightSquare(OldSquare, MoveSquareHighlightColor)
+    HighlightSquare(NewSquare, MoveSquareHighlightColor)
     PervHighlightSquare = OldSquare
     PervHighlightSquare2 = NewSquare
-
-def GetLegalMoves():
+    
+def MarkLegalMoves():
+    GetLegalMoves("single", GetSquareUnderMouse())
+    for i in range(len(legal_moves)):
+        NewSquare = int(legal_moves[i][2])
+        NewSquare = str(NewSquare) + str(int(legal_moves[i][3]))
+        NewSquare = int(NewSquare)
+        HighlightSquare((NewSquare), PossibleSquareHighlightColor)
+        
+def GetLegalMoves(mode, squarenumber):
     global legal_moves
     legal_moves = []
-    for i in range(64):
+    if mode == "all":
+        for i in range(64):
+            if turn == "w":
+                if board[i] == WhiteKing:
+                    GetKingMoves(i)
+                elif board[i] == WhitePawn:
+                    GetPawnMoves(i)
+                elif board[i] == WhiteKnight:
+                    GetKnightMoves(i)
+                elif board[i] == WhiteBishop:
+                    GetBishopMoves(i)
+                elif board[i] == WhiteRook:
+                    GetRookMoves(i)
+                elif board[i] == WhiteQueen:
+                    GetQueenMoves(i)
+            elif turn == "b":
+                if board[i] == BlackKing:
+                    GetKingMoves(i)
+                elif board[i] == BlackPawn:
+                    GetPawnMoves(i)
+                elif board[i] == BlackKnight:
+                    GetKnightMoves(i)
+                elif board[i] == BlackBishop:
+                    GetBishopMoves(i)
+                elif board[i] == BlackRook:
+                    GetRookMoves(i)
+                elif board[i] == BlackQueen:
+                    GetQueenMoves(i)
+            else:
+                pass
+    elif mode == "single":
         if turn == "w":
-            if board[i] == WhiteKing:
-                GetKingMoves(i)
-            elif board[i] == WhitePawn:
-                GetPawnMoves(i)
-            elif board[i] == WhiteKnight:
-                GetKnightMoves(i)
-            elif board[i] == WhiteBishop:
-                GetBishopMoves(i)
-            elif board[i] == WhiteRook:
-                GetRookMoves(i)
-            elif board[i] == WhiteQueen:
-                GetQueenMoves(i)
+            if board[squarenumber] == WhiteKing:
+                GetKingMoves(squarenumber)
+            elif board[squarenumber] == WhitePawn:
+                GetPawnMoves(squarenumber)
+            elif board[squarenumber] == WhiteKnight:
+                GetKnightMoves(squarenumber)
+            elif board[squarenumber] == WhiteBishop:
+                GetBishopMoves(squarenumber)
+            elif board[squarenumber] == WhiteRook:
+                GetRookMoves(squarenumber)
+            elif board[squarenumber] == WhiteQueen:
+                GetQueenMoves(squarenumber)
         elif turn == "b":
-            if board[i] == BlackKing:
-                GetKingMoves(i)
-            elif board[i] == BlackPawn:
-                GetPawnMoves(i)
-            elif board[i] == BlackKnight:
-                GetKnightMoves(i)
-            elif board[i] == BlackBishop:
-                GetBishopMoves(i)
-            elif board[i] == BlackRook:
-                GetRookMoves(i)
-            elif board[i] == BlackQueen:
-                GetQueenMoves(i)
+            if board[squarenumber] == BlackKing:
+                GetKingMoves(squarenumber)
+            elif board[squarenumber] == BlackPawn:
+                GetPawnMoves(squarenumber)
+            elif board[squarenumber] == BlackKnight:
+                GetKnightMoves(squarenumber)
+            elif board[squarenumber] == BlackBishop:
+                GetBishopMoves(squarenumber)
+            elif board[squarenumber] == BlackRook:
+                GetRookMoves(squarenumber)
+            elif board[squarenumber] == BlackQueen:
+                GetQueenMoves(squarenumber)
         else:
             pass
+        
+
 def GetPawnMoves(i):
     global legal_moves
     global turn
@@ -312,22 +353,30 @@ def GetPawnMoves(i):
             legal_moves.append(str(i) + str(i - 8))
             if rank == 6 and board[i - 16] == Empty:
                 legal_moves.append(str(i) + str(i - 16))
-        if board[i - 7] != Empty and file != 0:
-            legal_moves.append(str(i) + str(i - 7))
-        if board[i - 9] != Empty and file != 7:
+        if file >= 1 and file <= 6:
+            if board[i - 7] != Empty:
+                legal_moves.append(str(i) + str(i - 7))
+            if board[i - 9] != Empty:
+                legal_moves.append(str(i) + str(i - 9))
+        if file == 0:
             legal_moves.append(str(i) + str(i - 9))
+        if file == 7:
+            legal_moves.append(str(i) + str(i - 7))
     elif turn == "b":
         if board[i + 8] == Empty:
             legal_moves.append(str(i) + str(i + 8))
             if rank == 1 and board[i - 16] == Empty:
                 legal_moves.append(str(i) + str(i + 16))
-        if rank != 1 and file != 0:
-            if board[i + 7] != Empty and file != 7:
+        if file >= 1 and file <= 6:
+            if board[i + 7] != Empty:
                 legal_moves.append(str(i) + str(i + 7))
-        if rank != 1 and file != 7:
-            if board[i + 9] != Empty and file != 0:
-                legal_moves.append(str(i) + str(i + 9))
-
+            if board[i + 9] != Empty:
+                legal_moves.append(str(i) + str(i + 9)) 
+        if file == 0:
+            legal_moves.append(str(i) + str(i + 9))
+        if file == 7:
+            legal_moves.append(str(i) + str(i + 7))
+            
 def GetKnightMoves():
     pass
 
@@ -343,29 +392,29 @@ def GetQueenMoves():
 def GetKingMoves():
     pass
 
-WhiteKing_png = pygame.image.load("chess/images/wK.png")
+WhiteKing_png = pygame.image.load("chess w. own board interpreter/images/wK.png")
 WhiteKing_png = pygame.transform.scale(WhiteKing_png, (int(square_width), int(square_height)))
-BlackKing_png = pygame.image.load("chess/images/bK.png")
+BlackKing_png = pygame.image.load("chess w. own board interpreter/images/bK.png")
 BlackKing_png = pygame.transform.scale(BlackKing_png, (int(square_width), int(square_height)))
-WhitePawn_png = pygame.image.load("chess/images/wP.png")
+WhitePawn_png = pygame.image.load("chess w. own board interpreter/images/wP.png")
 WhitePawn_png = pygame.transform.scale(WhitePawn_png, (int(square_width), int(square_height)))
-BlackPawn_png = pygame.image.load("chess/images/bP.png")
+BlackPawn_png = pygame.image.load("chess w. own board interpreter/images/bP.png")
 BlackPawn_png = pygame.transform.scale(BlackPawn_png, (int(square_width), int(square_height)))
-WhiteKnight_png = pygame.image.load("chess/images/wN.png")
+WhiteKnight_png = pygame.image.load("chess w. own board interpreter/images/wN.png")
 WhiteKnight_png = pygame.transform.scale(WhiteKnight_png, (int(square_width), int(square_height)))
-BlackKnight_png = pygame.image.load("chess/images/bN.png")
+BlackKnight_png = pygame.image.load("chess w. own board interpreter/images/bN.png")
 BlackKnight_png = pygame.transform.scale(BlackKnight_png, (int(square_width), int(square_height)))
-WhiteBishop_png = pygame.image.load("chess/images/wB.png")
+WhiteBishop_png = pygame.image.load("chess w. own board interpreter/images/wB.png")
 WhiteBishop_png = pygame.transform.scale(WhiteBishop_png, (int(square_width), int(square_height)))
-BlackBishop_png = pygame.image.load("chess/images/bB.png")
+BlackBishop_png = pygame.image.load("chess w. own board interpreter/images/bB.png")
 BlackBishop_png = pygame.transform.scale(BlackBishop_png, (int(square_width), int(square_height)))
-WhiteRook_png = pygame.image.load("chess/images/wR.png")
+WhiteRook_png = pygame.image.load("chess w. own board interpreter/images/wR.png")
 WhiteRook_png = pygame.transform.scale(WhiteRook_png, (int(square_width), int(square_height)))
-BlackRook_png = pygame.image.load("chess/images/bR.png")
+BlackRook_png = pygame.image.load("chess w. own board interpreter/images/bR.png")
 BlackRook_png = pygame.transform.scale(BlackRook_png, (int(square_width), int(square_height)))
-WhiteQueen_png = pygame.image.load("chess/images/wQ.png")
+WhiteQueen_png = pygame.image.load("chess w. own board interpreter/images/wQ.png")
 WhiteQueen_png = pygame.transform.scale(WhiteQueen_png, (int(square_width), int(square_height)))
-BlackQueen_png = pygame.image.load("chess/images/bQ.png")
+BlackQueen_png = pygame.image.load("chess w. own board interpreter/images/bQ.png")
 BlackQueen_png = pygame.transform.scale(BlackQueen_png, (int(square_width), int(square_height)))
             
                         
@@ -401,6 +450,7 @@ while run:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 RemovePieceFromClickedSquare()
+                MarkLegalMoves()                            # Marks legal moves (temporary)
             if event.button == 3:
                 mousesquare = GetSquareUnderMouse()
                 print(mousesquare)
@@ -418,6 +468,7 @@ while run:
         CreateGraphicalBoard()
         DrawPieces()
         PutPieceUnderMouseCurser()
+        screen.blit(transparent, (0, 0))
     else:
         CreateGraphicalBoard()
         if legal_move == 1:
