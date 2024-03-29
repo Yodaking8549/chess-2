@@ -2,6 +2,7 @@ import pygame
 import chess
 import time
 from ChessEngine import GetAIMove
+from ChessEngine import GetSound
 pygame.init()
 pygame.mixer.init()
 
@@ -14,7 +15,8 @@ MoveSquareHighlightColor = 217, 162, 13, 100
 PossibleMovesSquareHighlightColor = 0, 255, 0, 120
 HighlightPossibleMoves = 0
 MemeMode = 0
-Gamemode = "AIvAI"
+Gamemode = "PvP"
+AIvAITimeDelay = 0.2
 if Gamemode == "PvAI":
     Playercolor = chess.WHITE
 
@@ -231,7 +233,21 @@ def PutPieceOnNewSquare():
     DynamicNewSquare = SquareDict[NewSquare]
     playsound = "No Sound"
     if OldSquare != NewSquare:
-        Move = chess.Move.from_uci(DynamicOldSquare + DynamicNewSquare)
+        if (DraggedPiece == WhitePawn and NewSquare < 8) or (DraggedPiece == BlackPawn and NewSquare > 55):
+            print("Promoting Options: Queen, Rook, Knight, Bishop")
+            PromotedPiece = input("Promote to: ")
+            if PromotedPiece == "Queen":
+                Move = chess.Move.from_uci(DynamicOldSquare + DynamicNewSquare + "q")
+            elif PromotedPiece == "Rook":
+                Move = chess.Move.from_uci(DynamicOldSquare + DynamicNewSquare + "r")
+            elif PromotedPiece == "Knight":
+                Move = chess.Move.from_uci(DynamicOldSquare + DynamicNewSquare + "n")
+            elif PromotedPiece == "Bishop":
+                Move = chess.Move.from_uci(DynamicOldSquare + DynamicNewSquare + "b")
+            else:
+                print("Not a Valid Piece")
+        else:
+            Move = chess.Move.from_uci(DynamicOldSquare + DynamicNewSquare)
         if Move in board.legal_moves:
             legal_move = 1
             if IsCapture() == False:
@@ -258,6 +274,22 @@ def PutPieceOnNewSquare():
         OldSquare = -1
         NewSquare = -1
         Dragmode = 0
+
+def GetOldAndNewSquareFromMove(Move):
+    global OldSquare
+    global NewSquare
+    SquareDict = {
+        "a8": 0, "b8": 1, "c8": 2, "d8": 3, "e8": 4, "f8": 5, "g8": 6, "h8": 7,
+        "a7": 8, "b7": 9, "c7": 10, "d7": 11, "e7": 12, "f7": 13, "g7": 14, "h7": 15,
+        "a6": 16, "b6": 17, "c6": 18, "d6": 19, "e6": 20, "f6": 21, "g6": 22, "h6": 23,
+        "a5": 24, "b5": 25, "c5": 26, "d5": 27, "e5": 28, "f5": 29, "g5": 30, "h5": 31,
+        "a4": 32, "b4": 33, "c4": 34, "d4": 35, "e4": 36, "f4": 37, "g4": 38, "h4": 39,
+        "a3": 40, "b3": 41, "c3": 42, "d3": 43, "e3": 44, "f3": 45, "g3": 46, "h3": 47,
+        "a2": 48, "b2": 49, "c2": 50, "d2": 51, "e2": 52, "f2": 53, "g2": 54, "h2": 55,
+        "a1": 56, "b1": 57, "c1": 58, "d1": 59, "e1": 60, "f1": 61, "g1": 62, "h1": 63
+    }
+    OldSquare = SquareDict[Move[:2]]
+    NewSquare = SquareDict[Move[2:4]]
 
 def HighlightSquare(squarenumber, color):
     file = squarenumber % 8
@@ -301,7 +333,7 @@ def PlaySound():
             GameOver = True
             CountCheckmateSoundTimer = 1
             
-def CheckmateSoundHandler():
+def GameOverSoundHandler():
     global CheckmateSoundTimer
     global CountCheckmateSoundTimer
     if CountCheckmateSoundTimer == 1:
@@ -438,6 +470,10 @@ DrawPieces()
 sounds[GameStartSound].play()
 run = True
 while run:
+    if Gamemode == 1 and turn != Playercolor or Gamemode == 2:
+        legal_move = 1
+    else:
+        legal_move = 0
     if GameOver == True:
         run = False
         if board.is_checkmate() == True:
@@ -455,19 +491,25 @@ while run:
         if board.is_fivefold_repetition() == True:
             print("Draw By Fivefold Repetition")
     BGMusicSoundHandler()
-    CheckmateSoundHandler()
+    GameOverSoundHandler()
     CreateGraphicalBoard()
     screen.blit(transparent, (0, 0))
     DrawPieces()
     if Gamemode == 1 and turn != Playercolor or Gamemode == 2:
+        transparent.fill((0, 0, 0, 0))
         Move = GetAIMove(board.fen())
         if Move != "Game Over":
             board.push(chess.Move.from_uci(Move))
             turn = not turn
+            playsound = GetSound()
+            PlaySound()
             ReloadDisplayingBoardlistFromFEN()
+            GetOldAndNewSquareFromMove(Move)
+            HighlightMoveSquares()
         else:
             if board.is_game_over() == True:
                 GameOver = True
+                GameOverSoundHandler()
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -476,7 +518,8 @@ while run:
             if event.button == 1:
                 RemovePieceFromClickedSquare()
                 if GameOver == False:
-                    transparent.fill((0, 0, 0, 0))
+                    if (Gamemode == 1 and turn == Playercolor) or Gamemode == 0:
+                        transparent.fill((0, 0, 0, 0))
             if event.button == 3:
                 mousesquare = GetSquareUnderMouse() # Gets the square number under the mouse (For Testing Purposes)
                 print(mousesquare)
@@ -491,4 +534,6 @@ while run:
     if Dragmode == 1:
         PutPieceUnderMouseCurser()
     pygame.display.flip()
+    if Gamemode == 2:
+        time.sleep(AIvAITimeDelay)
 pygame.quit()
