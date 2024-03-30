@@ -14,7 +14,7 @@ MoveSquareHighlightColor = 217, 162, 13, 100
 PossibleMovesSquareHighlightColor = 0, 255, 0, 120
 HighlightPossibleMoves = 0
 MemeMode = 0
-Gamemode = "PvP"
+Gamemode = "PvAI"
 AIvAITimeDelay = 0.2
 if Gamemode == "PvAI":
     Playercolor = chess.WHITE
@@ -354,18 +354,31 @@ def GetPlayerMove() -> str:
     pass
                 
 def PickUpPiece():
+    global ClickedSquare
+    global DraggedPiece
+    global Dragmode
     if TURN == "Player":
-        global ClickedSquare
-        global DraggedPiece
-        ClickedSquare = GetSquareUnderMouse()
-        DraggedPiece = displayingboard[ClickedSquare]
-        if DraggedPiece != Empty:
-            global Dragmode
-            Dragmode = 1
-            displayingboard[ClickedSquare] = Empty
-        
+        if turn:
+            ClickedSquare = GetSquareUnderMouse()
+            DraggedPiece = displayingboard[ClickedSquare]
+            if DraggedPiece[0] == "w":
+                Dragmode = 1
+                displayingboard[ClickedSquare] = Empty
+            elif DraggedPiece[0] == "b":
+                print("It's not your turn!")
+        elif not turn:
+            ClickedSquare = GetSquareUnderMouse()
+            DraggedPiece = displayingboard[ClickedSquare]
+            if DraggedPiece[0] == "b":
+                Dragmode = 1
+                displayingboard[ClickedSquare] = Empty
+            elif DraggedPiece[0] == "w":
+                print("It's not your turn!")
+
 def PutDownPieceGetMove():
     global Dragmode
+    global NewSquare
+    global OldSquare
     if Dragmode == 1:
         Dragmode = 0
         SquareDict = {
