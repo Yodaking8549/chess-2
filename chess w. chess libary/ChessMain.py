@@ -166,7 +166,8 @@ def init():
             BackgroundMusic = 8
             CountBGMusicSoundTimer = 1
         already_initialized = True
-        sounds[GameStartSound].play()
+        if PlayStartSound:
+            sounds[GameStartSound].play()
         displayingboard = [0 for row in range(64)]
         turn = chess.WHITE
         board = chess.Board(StartFEN)
@@ -174,6 +175,7 @@ def init():
         CreateGraphicalBoard()
         ReloadDisplayingBoardlistFromFEN()
         DrawPieces()
+        transparent.fill((255, 255, 255, 0))
         
 def MenuEventHandler():
     global MainMenu
@@ -324,6 +326,57 @@ def DrawStartButton():
     pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 130, SCREEN_HEIGHT - 135, 260, 70], 5, 5)
     screen.blit(text, text_rect)
     
+def PromotionEventHandler():
+    global run
+    global MainMenu
+    global Promote
+    global Move
+    for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                if event.pos[0] in range(100, 200) and event.pos[1] in range(100, 200):
+                    Move = (chess.Move.from_uci(MoveBeforePromote.uci() + "q"))
+                    Promote = False
+                elif event.pos[0] in range(100, 200) and event.pos[1] in range(200, 300):
+                    Move = (chess.Move.from_uci(MoveBeforePromote.uci() + "r"))
+                    Promote = False
+                elif event.pos[0] in range(100, 200) and event.pos[1] in range(300, 400):
+                    Move = (chess.Move.from_uci(MoveBeforePromote.uci() + "b"))
+                    Promote = False
+                elif event.pos[0] in range(100, 200) and event.pos[1] in range(400, 500):
+                    Move = (chess.Move.from_uci(MoveBeforePromote.uci() + "n"))
+                    Promote = False
+        if event.type == pygame.QUIT:
+            run = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                MainMenu = True
+
+def DrawPromotionScreen():
+    global MainMenu
+    global Promote
+    pygame.draw.rect(screen, "light gray", [100, 100, 100, 100], 0, 5)
+    pygame.draw.rect(screen, "dark gray", [100, 100, 100, 100], 5, 5)
+    pygame.draw.rect(screen, "light gray", [100, 200, 100, 100], 0, 5)
+    pygame.draw.rect(screen, "dark gray", [100, 200, 100, 100], 5, 5)
+    pygame.draw.rect(screen, "light gray", [100, 300, 100, 100], 0, 5)
+    pygame.draw.rect(screen, "dark gray", [100, 300, 100, 100], 5, 5)
+    pygame.draw.rect(screen, "light gray", [100, 400, 100, 100], 0, 5)
+    pygame.draw.rect(screen, "dark gray", [100, 400, 100, 100], 5, 5)
+    font = pygame.font.Font("freesansbold.ttf", 24)
+    text = font.render("Queen", True, (0, 0, 0))
+    text_rect = text.get_rect(center=(150, 150))
+    screen.blit(text, text_rect)
+    text = font.render("Rook", True, (0, 0, 0))
+    text_rect = text.get_rect(center=(150, 250))
+    screen.blit(text, text_rect)
+    text = font.render("Bishop", True, (0, 0, 0))
+    text_rect = text.get_rect(center=(150, 350))
+    screen.blit(text, text_rect)
+    text = font.render("Knight", True, (0, 0, 0))
+    text_rect = text.get_rect(center=(150, 450))
+    screen.blit(text, text_rect)
+
 def CreateGraphicalBoard():
     rank = 0
     for i in range(64):
@@ -629,6 +682,10 @@ def ClearVariables():
     HandledGameOver = False
     global BGMusicRunning
     BGMusicRunning = False
+    global Promote
+    Promote = False
+    global FinishedPromote
+    FinishedPromote = True
             
 def ReloadDisplayingBoardlistFromFEN():
     BoardFENToDisplayingBoard(board.fen())
@@ -663,9 +720,6 @@ def HandleGameOver():
         else:
             print("Draw By Other Reason")
         HandledGameOver = True
-        
-def GetPlayerMove() -> str:
-    pass
                 
 def PickUpPiece():
     global ClickedSquare
@@ -690,10 +744,17 @@ def PickUpPiece():
                 print("It's not your turn!")
 
 def PutDownPieceGetMove():
+    global FinishedPromote
     global Dragmode
     global NewSquare
     global OldSquare
-    if Dragmode == 1:
+    global Promote
+    global MoveBeforePromote
+    global DynamicOldSquare
+    global DynamicNewSquare
+    if (Dragmode == 1) or (not FinishedPromote):
+        if not FinishedPromote:
+            FinishedPromote = True
         Dragmode = 0
         SquareDict = {
             0: "a8", 1: "b8", 2: "c8", 3: "d8", 4: "e8", 5: "f8", 6: "g8", 7: "h8",
@@ -709,13 +770,32 @@ def PutDownPieceGetMove():
         NewSquare = GetSquareUnderMouse()
         DynamicOldSquare = SquareDict[OldSquare]
         DynamicNewSquare = SquareDict[NewSquare]
-        if OldSquare != NewSquare:
-            Move = chess.Move.from_uci(DynamicOldSquare + DynamicNewSquare)
+        GetPlayerMove()
+        
+
+def GetPlayerMove():
+    global Move
+    global Promote
+    global MoveBeforePromote
+    global FinishedPromote
+    global DynamicNewSquare
+    global DynamicOldSquare
+    
+    if OldSquare != NewSquare:
+        Move = chess.Move.from_uci(DynamicOldSquare + DynamicNewSquare)
+        print(Move, "Move not on same square")
+        if DraggedPiece[1] == "P" or DraggedPiece[1] == "p":
+            if NewSquare <= 7 or NewSquare >= 56:
+                Promote = True
+                MoveBeforePromote = Move
+                FinishedPromote = False
+        if not Promote:
             if ValidateMove(Move):
                 HandleValidMove(Move)
+                print(Move, "Move Validated")
             else:
                 HandleInvalidMove()
-    
+
         
 def ValidateMove(Move) -> bool:
     return Move.uci() in [move.uci() for move in board.legal_moves]
@@ -809,31 +889,38 @@ def MainGameLoop():
             DrawMenuScreens()
             pygame.display.flip()
         else:
-            init()
-            screen.fill((0, 0, 0))
-            HandleGameOver()
-            CounterHandler()
-            CreateGraphicalBoard()
-            screen.blit(transparent, (0, 0))
-            DrawPieces()
-            if Dragmode == 1:
-                PutPieceUnderMouseCurser()
+            if Promote:
+                PromotionEventHandler()
+                CreateGraphicalBoard()
+                DrawPieces()
+                DrawPromotionScreen()
+                pygame.display.flip()
             else:
-                ReloadDisplayingBoardlistFromFEN()
-            if not GameOver:
-                GetMove()
-                EventHandler()
-                PlayMoveAndSound()
-                GetOldAndNewSquareFromMove(Move)
-                HighlightMoveSquares()
-                Move = None
-            else:
-                EventHandler()
-            pygame.display.flip()
-            if Gamemode == 2:
-                time.sleep(AIvAITimeDelay)
-    
+                init()
+                HandleGameOver()
+                CounterHandler()
+                CreateGraphicalBoard()
+                screen.blit(transparent, (0, 0))
+                DrawPieces()
+                if Dragmode == 1:
+                    PutPieceUnderMouseCurser()
+                else:
+                    ReloadDisplayingBoardlistFromFEN()
+                if not GameOver:
+                    GetMove()
+                    EventHandler()
+                    PlayMoveAndSound()
+                    GetOldAndNewSquareFromMove(Move)
+                    HighlightMoveSquares()
+                    Move = None
+                else:
+                    EventHandler()
+                pygame.display.flip()
+                if Gamemode == 2:
+                    time.sleep(AIvAITimeDelay)
+PlayStartSound = False
 init()
+PlayStartSound = True
 displayingboard = [0 for row in range(64)]
 turn = chess.WHITE
 board = chess.Board(StartFEN)
