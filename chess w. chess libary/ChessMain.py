@@ -14,10 +14,9 @@ MoveSquareHighlightColor = 217, 162, 13, 100
 PossibleMovesSquareHighlightColor = 0, 255, 0, 120
 HighlightPossibleMoves = 0
 MemeMode = 0
-Gamemode = "PvAI"
-AIvAITimeDelay = 0.2
-if Gamemode == "PvAI":
-    Playercolor = chess.WHITE
+Gamemode = "PvP"
+AIvAITimeDelay = 0
+Playercolor = chess.WHITE
 
 if Gamemode == "PvP":
     Gamemode = 0
@@ -29,6 +28,7 @@ else:
     print("Invalid Gamemode")
     exit()
     
+MainMenu = True
 
 if SCREEN_WIDTH <= SCREEN_HEIGHT:
     SmallestValue = SCREEN_WIDTH
@@ -38,9 +38,292 @@ else:
 square_height = SmallestValue // 8
 square_width = SmallestValue // 8
 
+already_initialized = False
+
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Chess")
 transparent = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
 
+font = pygame.font.Font("freesansbold.ttf", 24)
+
+def init():
+    global WhiteKing_png
+    global BlackKing_png
+    global WhitePawn_png
+    global BlackPawn_png
+    global WhiteKnight_png
+    global BlackKnight_png
+    global WhiteBishop_png
+    global BlackBishop_png
+    global WhiteRook_png
+    global BlackRook_png
+    global WhiteQueen_png
+    global BlackQueen_png
+    global sounds
+    global IllegalSound
+    global CaptureSound
+    global MoveSound
+    global CheckSound
+    global CheckmateSound
+    global PromoteSound
+    global CastleSound
+    global GameStartSound
+    global BackgroundMusic
+    global already_initialized
+    global displayingboard
+    global turn
+    global board
+    global Empty
+    global WhiteKing
+    global BlackKing
+    global WhitePawn
+    global BlackPawn
+    global WhiteKnight
+    global BlackKnight
+    global WhiteBishop
+    global BlackBishop
+    global WhiteRook
+    global BlackRook
+    global WhiteQueen
+    global BlackQueen
+    global HighlightPossibleMoves
+    global MemeMode
+    global SoundFiles
+    global StartFEN
+    global HighlightPossibleMoves
+    global CountBGMusicSoundTimer
+    if already_initialized:
+        pass
+    else:            
+        WhiteKing_png = pygame.image.load("chess w. chess libary/images/wK.png")
+        WhiteKing_png = pygame.transform.scale(WhiteKing_png, (int(square_width), int(square_height)))
+        BlackKing_png = pygame.image.load("chess w. chess libary/images/bK.png")
+        BlackKing_png = pygame.transform.scale(BlackKing_png, (int(square_width), int(square_height)))
+        WhitePawn_png = pygame.image.load("chess w. chess libary/images/wP.png")
+        WhitePawn_png = pygame.transform.scale(WhitePawn_png, (int(square_width), int(square_height)))
+        BlackPawn_png = pygame.image.load("chess w. chess libary/images/bP.png")
+        BlackPawn_png = pygame.transform.scale(BlackPawn_png, (int(square_width), int(square_height)))
+        WhiteKnight_png = pygame.image.load("chess w. chess libary/images/wN.png")
+        WhiteKnight_png = pygame.transform.scale(WhiteKnight_png, (int(square_width), int(square_height)))
+        BlackKnight_png = pygame.image.load("chess w. chess libary/images/bN.png")
+        BlackKnight_png = pygame.transform.scale(BlackKnight_png, (int(square_width), int(square_height)))
+        WhiteBishop_png = pygame.image.load("chess w. chess libary/images/wB.png")
+        WhiteBishop_png = pygame.transform.scale(WhiteBishop_png, (int(square_width), int(square_height)))
+        BlackBishop_png = pygame.image.load("chess w. chess libary/images/bB.png")
+        BlackBishop_png = pygame.transform.scale(BlackBishop_png, (int(square_width), int(square_height)))
+        WhiteRook_png = pygame.image.load("chess w. chess libary/images/wR.png")
+        WhiteRook_png = pygame.transform.scale(WhiteRook_png, (int(square_width), int(square_height)))
+        BlackRook_png = pygame.image.load("chess w. chess libary/images/bR.png")
+        BlackRook_png = pygame.transform.scale(BlackRook_png, (int(square_width), int(square_height)))
+        WhiteQueen_png = pygame.image.load("chess w. chess libary/images/wQ.png")
+        WhiteQueen_png = pygame.transform.scale(WhiteQueen_png, (int(square_width), int(square_height)))
+        BlackQueen_png = pygame.image.load("chess w. chess libary/images/bQ.png")
+        BlackQueen_png = pygame.transform.scale(BlackQueen_png, (int(square_width), int(square_height)))
+                    
+                                
+        Empty = "0"
+        WhiteKing = "wK"
+        BlackKing = "bK"
+        WhitePawn = "wP"
+        BlackPawn = "bP"
+        WhiteKnight = "wN"
+        BlackKnight = "bN"
+        WhiteBishop = "wB"
+        BlackBishop = "bB"
+        WhiteRook = "wR"
+        BlackRook = "bR"
+        WhiteQueen = "wQ"
+        BlackQueen = "bQ"
+        if MemeMode == 0:
+            SoundFiles = ["chess w. chess libary/sounds/illegal.mp3",
+                        "chess w. chess libary/sounds/capture.mp3", 
+                        "chess w. chess libary/sounds/move.mp3", 
+                        "chess w. chess libary/sounds/check.mp3",
+                        "chess w. chess libary/sounds/game-end.mp3", 
+                        "chess w. chess libary/sounds/promote.mp3", 
+                        "chess w. chess libary/sounds/castle.mp3",
+                        "chess w. chess libary/sounds/game-start.mp3"]
+        elif MemeMode == 1:
+            SoundFiles = ["chess w. chess libary/sounds/illegal.mp3",
+                        "chess w. chess libary/sounds/capture.mp3", 
+                        "chess w. chess libary/sounds/move.mp3", 
+                        "chess w. chess libary/sounds/check.mp3",
+                        "chess w. chess libary/sounds/memeSounds/game-end.mp3", 
+                        "chess w. chess libary/sounds/promote.mp3", 
+                        "chess w. chess libary/sounds/castle.mp3",
+                        "chess w. chess libary/sounds/memeSounds/game-start.mp3",
+                        "chess w. chess libary/sounds/memeSounds/background-music.mp3"]
+        sounds = [pygame.mixer.Sound(i) for i in SoundFiles]
+        IllegalSound = 0
+        CaptureSound = 1
+        MoveSound = 2
+        CheckSound = 3
+        CheckmateSound = 4
+        PromoteSound = 5
+        CastleSound = 6
+        GameStartSound = 7
+        if MemeMode == 1:
+            BackgroundMusic = 8
+            CountBGMusicSoundTimer = 1
+        already_initialized = True
+        sounds[GameStartSound].play()
+        displayingboard = [0 for row in range(64)]
+        turn = chess.WHITE
+        board = chess.Board(StartFEN)
+        ClearVariables()
+        CreateGraphicalBoard()
+        ReloadDisplayingBoardlistFromFEN()
+        DrawPieces()
+        
+def MenuEventHandler():
+    global MainMenu
+    global Gamemode
+    global run
+    global HighlightPossibleMoves
+    global MemeMode
+    global already_initialized
+    global Playercolor
+    global PlayercolorButton
+    run = True
+    for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                if Gamemode == 0:
+                    if GamemodeButton.collidepoint(event.pos):
+                        Gamemode = 1
+                elif Gamemode == 1: 
+                    if GamemodeButton.collidepoint(event.pos):
+                        Gamemode = 2
+                elif Gamemode == 2:
+                    if GamemodeButton.collidepoint(event.pos):
+                        Gamemode = 0
+                if HighlightPossibleMovesButton.collidepoint(event.pos):
+                    if HighlightPossibleMoves == 1:
+                        HighlightPossibleMoves = 0
+                    elif HighlightPossibleMoves == 0:
+                        HighlightPossibleMoves = 1
+                    else:
+                        print("Invalid HighlightPossibleMoves Setting")
+                        exit()
+                if MemeModeButton.collidepoint(event.pos):
+                    if MemeMode == 1:
+                        MemeMode = 0
+                    elif MemeMode == 0:
+                        MemeMode = 1
+                    else:
+                        print("Invalid MemeMode Setting")
+                        exit()
+                if PlayercolorButton.collidepoint(event.pos):
+                    if Playercolor == chess.WHITE:
+                        Playercolor = chess.BLACK
+                    elif Playercolor == chess.BLACK:
+                        Playercolor = chess.WHITE
+                    else:
+                        print("Invalid Playercolor Setting")
+                        exit()
+                if StartButton.collidepoint(event.pos):
+                    MainMenu = False
+                    already_initialized = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                run = False
+        if event.type == pygame.QUIT:
+            run = False
+            
+def DrawMenuScreens():
+    global Gamemode
+    if Gamemode == 0:
+        DrawPvPMenu()
+    elif Gamemode == 1:
+        DrawPvAIMenu()
+    elif Gamemode == 2:
+        DrawAIvAIMenu()
+
+def DrawPvPMenu():
+    global MainMenu
+    global Gamemode
+    global GamemodeButton
+    GamemodeButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 130, 50, 260, 70], 0, 5)
+    pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 130, 50, 260, 70], 5, 5)
+    text = font.render("Player vs Player", True, (0, 0, 0))
+    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 85))
+    screen.blit(text, text_rect)
+    DrawHighlightPossibleMovesButton()
+    DrawMemeModeButton()
+    DrawStartButton()
+
+def DrawPvAIMenu():
+    global MainMenu
+    global Gamemode
+    global GamemodeButton
+    global PlayercolorButton
+    GamemodeButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 130, 50, 260, 70], 0, 5)
+    pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 130, 50, 260, 70], 5, 5)
+    text = font.render("Player vs AI", True, (0, 0, 0))
+    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 85))
+    screen.blit(text, text_rect)
+    DrawHighlightPossibleMovesButton()
+    DrawMemeModeButton()
+    DrawPlayercolorButton()
+    DrawStartButton()
+
+def DrawAIvAIMenu():
+    global MainMenu
+    global Gamemode
+    global GamemodeButton
+    GamemodeButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 130, 50, 260, 70], 0, 5)
+    pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 130, 50, 260, 70], 5, 5)
+    text = font.render("AI vs AI", True, (0, 0, 0))
+    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 85))
+    screen.blit(text, text_rect)
+    DrawHighlightPossibleMovesButton()
+    DrawMemeModeButton()
+    DrawStartButton()
+
+def DrawHighlightPossibleMovesButton():
+    global HighlightPossibleMovesButton
+    if HighlightPossibleMoves == 1:
+        text = font.render("Highlight Possible Moves: ON", True, (0, 0, 0))
+    else:
+        text = font.render("Highlight Possible Moves: OFF", True, (0, 0, 0))
+    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 185))
+    HighlightPossibleMovesButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 200, 150, 400, 70], 0, 5)
+    pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 200, 150, 400, 70], 5, 5)
+    screen.blit(text, text_rect)
+
+def DrawMemeModeButton():
+    global MemeModeButton
+    if MemeMode == 1:
+        text = font.render("Meme Mode: ON", True, (0, 0, 0))
+    else:
+        text = font.render("Meme Mode: OFF", True, (0, 0, 0))
+    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 285))
+    MemeModeButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 130, 250, 260, 70], 0, 5)
+    pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 130, 250, 260, 70], 5, 5)
+    screen.blit(text, text_rect)
+
+def DrawPlayercolorButton():
+    global PlayercolorButton
+    if Playercolor == chess.WHITE:
+        color = "White"
+    elif Playercolor == chess.BLACK:
+        color = "Black"
+    text = font.render("Player Color: " + color, True, (0, 0, 0))
+    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 400))
+    PlayercolorButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 130, 365, 260, 70], 0, 5)
+    pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 130, 365, 260, 70], 5, 5)
+    screen.blit(text, text_rect)
+    
+PlayercolorButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 200, 330, 400, 70], 0, 5)
+
+def DrawStartButton():
+    global StartButton
+    text = font.render("Start", True, (0, 0, 0))
+    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 100))
+    StartButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 130, SCREEN_HEIGHT - 135, 260, 70], 0, 5)
+    pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 130, SCREEN_HEIGHT - 135, 260, 70], 5, 5)
+    screen.blit(text, text_rect)
+    
 def CreateGraphicalBoard():
     rank = 0
     for i in range(64):
@@ -60,6 +343,8 @@ def CreateGraphicalBoard():
             rank += 1
             
 def BoardFENToDisplayingBoard(FEN):
+    global displayingboard
+    global Empty
     rank = 0
     file = 0
     for i in range(len(FEN)):
@@ -77,6 +362,18 @@ def BoardFENToDisplayingBoard(FEN):
             file += 1
             
 def MakeBoardListUsable(listname):
+    global WhiteKing
+    global BlackKing
+    global WhitePawn
+    global BlackPawn
+    global WhiteKnight
+    global BlackKnight
+    global WhiteBishop
+    global BlackBishop
+    global WhiteRook
+    global BlackRook
+    global WhiteQueen
+    global BlackQueen
     for i in range(len(listname)):
         if listname[i] == "0":
             listname[i] = "0"
@@ -140,6 +437,18 @@ def SummonPieceFromBoardArray(n, piece_x, piece_y):
         screen.blit(BlackQueen_png, (piece_x, piece_y))
         
 def SummonPieceFromName(name, piece_x, piece_y):
+    global WhiteKing
+    global BlackKing
+    global WhitePawn
+    global BlackPawn
+    global WhiteKnight
+    global BlackKnight
+    global WhiteBishop
+    global BlackBishop
+    global WhiteRook
+    global BlackRook
+    global WhiteQueen
+    global BlackQueen
     if name == WhiteKing:
         screen.blit(WhiteKing_png, (piece_x, piece_y))
     elif name == BlackKing:
@@ -236,10 +545,8 @@ def PlaySound(playsound: str):
 def CounterHandler():
     global CountCheckmateSoundTimer
     global CountBGMusicSoundTimer
-    if CountCheckmateSoundTimer == 1:
-        GameOverSoundHandler()
-    if CountBGMusicSoundTimer == 1:
-        BGMusicSoundHandler()
+    GameOverSoundHandler()
+    BGMusicSoundHandler()
     
 def GameOverSoundHandler():
     global CheckmateSoundTimer
@@ -254,8 +561,10 @@ def GameOverSoundHandler():
             CheckmateSoundTimer = 0         
             
 def BGMusicSoundHandler():
+    global MemeMode
     global BGMusicSoundTimer
     global CountBGMusicSoundTimer
+    global BGMusicRunning
     if MemeMode == 1:
         if CountBGMusicSoundTimer == 1:
             BGMusicSoundTimer += 1
@@ -263,7 +572,10 @@ def BGMusicSoundHandler():
                 sounds[BackgroundMusic].play()
                 CountBGMusicSoundTimer = 0
                 BGMusicSoundTimer = 0
-                
+                BGMusicRunning = True
+        if not BGMusicRunning:
+            CountBGMusicSoundTimer = 1 
+       
 def GetCorrectSound(PlayedMove):
     if isinstance(PlayedMove, str):
         PlayedMove = chess.Move.from_uci(PlayedMove)
@@ -315,6 +627,8 @@ def ClearVariables():
     LegalMove = False
     global HandledGameOver
     HandledGameOver = False
+    global BGMusicRunning
+    BGMusicRunning = False
             
 def ReloadDisplayingBoardlistFromFEN():
     BoardFENToDisplayingBoard(board.fen())
@@ -328,7 +642,7 @@ def HandleGameOver():
         GameOver = True
         CountCheckmateSoundTimer = 1
         if board.is_checkmate():
-            if Gamemode == 0:
+            if Gamemode == 0 or Gamemode == 2:
                 if board.turn == chess.WHITE:
                     print("Black wins by checkmate!")
                 else:
@@ -343,7 +657,7 @@ def HandleGameOver():
         elif board.is_insufficient_material():
             print("Draw By Insufficient Material")
         elif board.is_seventyfive_moves():
-            print("Draw By Seventy Five Moves")
+            print("Draw By Seventy Five Move Rule")
         elif board.is_fivefold_repetition():
             print("Draw By Fivefold Repetition")
         else:
@@ -450,97 +764,37 @@ def GetMove():
         
 def EventHandler():
     global TURN
+    global MainMenu
+    global run
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            global run
             run = False
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                if TURN == "Player" and Dragmode == 0:
+                if TURN == "Player" and Dragmode == 0 and not GameOver and not MainMenu:
                     PickUpPiece()
-            if event.button == 3:
+            if event.button == 3 and not MainMenu:
                 PrintDebugInfo()
         if event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
-                if TURN == "Player" and Dragmode == 1:
+                if TURN == "Player" and Dragmode == 1 and not GameOver and not MainMenu:
                     PutDownPieceGetMove()
+        if event.type == pygame.QUIT:
+            run = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                if not MainMenu:
+                    MainMenu = True
+                else:
+                    run = False
+                
 def PrintDebugInfo():
     print("TURN: ", TURN)
     print("turn: ", turn)
     print("Move: ", Move)
     print("board:")
     print(board)    
-    
-WhiteKing_png = pygame.image.load("chess w. chess libary/images/wK.png")
-WhiteKing_png = pygame.transform.scale(WhiteKing_png, (int(square_width), int(square_height)))
-BlackKing_png = pygame.image.load("chess w. chess libary/images/bK.png")
-BlackKing_png = pygame.transform.scale(BlackKing_png, (int(square_width), int(square_height)))
-WhitePawn_png = pygame.image.load("chess w. chess libary/images/wP.png")
-WhitePawn_png = pygame.transform.scale(WhitePawn_png, (int(square_width), int(square_height)))
-BlackPawn_png = pygame.image.load("chess w. chess libary/images/bP.png")
-BlackPawn_png = pygame.transform.scale(BlackPawn_png, (int(square_width), int(square_height)))
-WhiteKnight_png = pygame.image.load("chess w. chess libary/images/wN.png")
-WhiteKnight_png = pygame.transform.scale(WhiteKnight_png, (int(square_width), int(square_height)))
-BlackKnight_png = pygame.image.load("chess w. chess libary/images/bN.png")
-BlackKnight_png = pygame.transform.scale(BlackKnight_png, (int(square_width), int(square_height)))
-WhiteBishop_png = pygame.image.load("chess w. chess libary/images/wB.png")
-WhiteBishop_png = pygame.transform.scale(WhiteBishop_png, (int(square_width), int(square_height)))
-BlackBishop_png = pygame.image.load("chess w. chess libary/images/bB.png")
-BlackBishop_png = pygame.transform.scale(BlackBishop_png, (int(square_width), int(square_height)))
-WhiteRook_png = pygame.image.load("chess w. chess libary/images/wR.png")
-WhiteRook_png = pygame.transform.scale(WhiteRook_png, (int(square_width), int(square_height)))
-BlackRook_png = pygame.image.load("chess w. chess libary/images/bR.png")
-BlackRook_png = pygame.transform.scale(BlackRook_png, (int(square_width), int(square_height)))
-WhiteQueen_png = pygame.image.load("chess w. chess libary/images/wQ.png")
-WhiteQueen_png = pygame.transform.scale(WhiteQueen_png, (int(square_width), int(square_height)))
-BlackQueen_png = pygame.image.load("chess w. chess libary/images/bQ.png")
-BlackQueen_png = pygame.transform.scale(BlackQueen_png, (int(square_width), int(square_height)))
-            
-                        
-Empty = "0"
-WhiteKing = "wK"
-BlackKing = "bK"
-WhitePawn = "wP"
-BlackPawn = "bP"
-WhiteKnight = "wN"
-BlackKnight = "bN"
-WhiteBishop = "wB"
-BlackBishop = "bB"
-WhiteRook = "wR"
-BlackRook = "bR"
-WhiteQueen = "wQ"
-BlackQueen = "bQ"
-if MemeMode == 0:
-    SoundFiles = ["chess w. chess libary/sounds/illegal.mp3",
-                "chess w. chess libary/sounds/capture.mp3", 
-                "chess w. chess libary/sounds/move.mp3", 
-                "chess w. chess libary/sounds/check.mp3",
-                "chess w. chess libary/sounds/game-end.mp3", 
-                "chess w. chess libary/sounds/promote.mp3", 
-                "chess w. chess libary/sounds/castle.mp3",
-                "chess w. chess libary/sounds/game-start.mp3"]
-elif MemeMode == 1:
-    SoundFiles = ["chess w. chess libary/sounds/illegal.mp3",
-                "chess w. chess libary/sounds/capture.mp3", 
-                "chess w. chess libary/sounds/move.mp3", 
-                "chess w. chess libary/sounds/check.mp3",
-                "chess w. chess libary/sounds/memeSounds/game-end.mp3", 
-                "chess w. chess libary/sounds/promote.mp3", 
-                "chess w. chess libary/sounds/castle.mp3",
-                "chess w. chess libary/sounds/memeSounds/game-start.mp3",
-                "chess w. chess libary/sounds/memeSounds/background-music.mp3"]
-sounds = [pygame.mixer.Sound(i) for i in SoundFiles]
-IllegalSound = 0
-CaptureSound = 1
-MoveSound = 2
-CheckSound = 3
-CheckmateSound = 4
-PromoteSound = 5
-CastleSound = 6
-GameStartSound = 7
-if MemeMode == 1:
-    BackgroundMusic = 8
-    CountBGMusicSoundTimer = 1
+
 run = True
 def MainGameLoop():
     global run
@@ -549,29 +803,37 @@ def MainGameLoop():
     global Move
     global GameOver
     while run:
-        HandleGameOver()
-        CounterHandler()
-        CreateGraphicalBoard()
-        screen.blit(transparent, (0, 0))
-        DrawPieces()
-        if Dragmode == 1:
-            PutPieceUnderMouseCurser()
+        if MainMenu:
+            screen.fill((0, 0, 0))
+            MenuEventHandler()
+            DrawMenuScreens()
+            pygame.display.flip()
         else:
-            ReloadDisplayingBoardlistFromFEN()
-        if not GameOver:
-            GetMove()
-            EventHandler()
-            PlayMoveAndSound()
-            GetOldAndNewSquareFromMove(Move)
-            HighlightMoveSquares()
-            Move = None
-        pygame.display.flip()
-        if Gamemode == 2:
-            time.sleep(AIvAITimeDelay)
-    pygame.quit()
+            init()
+            screen.fill((0, 0, 0))
+            HandleGameOver()
+            CounterHandler()
+            CreateGraphicalBoard()
+            screen.blit(transparent, (0, 0))
+            DrawPieces()
+            if Dragmode == 1:
+                PutPieceUnderMouseCurser()
+            else:
+                ReloadDisplayingBoardlistFromFEN()
+            if not GameOver:
+                GetMove()
+                EventHandler()
+                PlayMoveAndSound()
+                GetOldAndNewSquareFromMove(Move)
+                HighlightMoveSquares()
+                Move = None
+            else:
+                EventHandler()
+            pygame.display.flip()
+            if Gamemode == 2:
+                time.sleep(AIvAITimeDelay)
     
-    
-
+init()
 displayingboard = [0 for row in range(64)]
 turn = chess.WHITE
 board = chess.Board(StartFEN)
@@ -579,6 +841,8 @@ ClearVariables()
 CreateGraphicalBoard()
 ReloadDisplayingBoardlistFromFEN()
 DrawPieces()
-sounds[GameStartSound].play()
+
+
 
 MainGameLoop()
+pygame.quit()
