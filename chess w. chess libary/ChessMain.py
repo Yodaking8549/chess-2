@@ -257,6 +257,10 @@ def MenuEventHandler():
             run = False
             
 def DrawMenuScreens():
+    global StartNewAIGame
+    if StartNewAIGame == 1:
+        startAIgame()
+        StartNewAIGame = 0
     global Gamemode
     if Gamemode == 0:
         DrawPvPMenu()
@@ -384,6 +388,25 @@ def DrawStartButton():
     StartButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 130, SCREEN_HEIGHT - 135, 260, 70], 0, 5)
     pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 130, SCREEN_HEIGHT - 135, 260, 70], 5, 5)
     screen.blit(text, text_rect)
+
+def startAIgame():
+    global Gamemode
+    global MainMenu
+    global already_initialized
+    Gamemode = 2
+    MainMenu = False
+    already_initialized = False
+
+def FindAIvAICheckmate():
+    global board
+    global MainMenu
+    global StartNewAIGame
+    global Gamemode
+    if (board.is_checkmate() == True and Gamemode == 2):
+        pass
+    else:
+        MainMenu = True
+        StartNewAIGame = 1
     
 def PromotionEventHandler():
     global run
@@ -415,7 +438,7 @@ def PromotionEventHandler():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 MainMenu = True
-
+                
 def DrawPromotionScreen():
     global MainMenu
     global Promote
@@ -750,6 +773,8 @@ def ClearVariables():
     Promote = False
     global FinishedPromote
     FinishedPromote = True
+    global StartNewAIGame
+    StartNewAIGame = False
             
 def ReloadDisplayingBoardlistFromFEN():
     BoardFENToDisplayingBoard(board.fen())
@@ -916,6 +941,7 @@ def EventHandler():
     global TURN
     global MainMenu
     global run
+    global StartNewAIGame
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
@@ -925,6 +951,9 @@ def EventHandler():
                     PickUpPiece()
             if event.button == 3 and not MainMenu:
                 PrintDebugInfo()
+            if (((event.button == 2) and not MainMenu) and GameOver) and Gamemode == 2:
+                MainMenu = True
+                StartNewAIGame = True
         if event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
                 if TURN == "Player" and Dragmode == 1 and not GameOver and not MainMenu:
@@ -991,6 +1020,7 @@ def MainGameLoop():
                     Move = None
                 else:
                     EventHandler()
+                    FindAIvAICheckmate()
                 pygame.display.flip()
                 if Gamemode == 2:
                     time.sleep(AIvAITimeDelay)
