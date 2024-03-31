@@ -331,21 +331,26 @@ def PromotionEventHandler():
     global MainMenu
     global Promote
     global Move
+    global FinishedPromote
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 if event.pos[0] in range(100, 200) and event.pos[1] in range(100, 200):
                     Move = (chess.Move.from_uci(MoveBeforePromote.uci() + "q"))
                     Promote = False
+                    FinishedPromote = False
                 elif event.pos[0] in range(100, 200) and event.pos[1] in range(200, 300):
                     Move = (chess.Move.from_uci(MoveBeforePromote.uci() + "r"))
                     Promote = False
+                    FinishedPromote = False
                 elif event.pos[0] in range(100, 200) and event.pos[1] in range(300, 400):
                     Move = (chess.Move.from_uci(MoveBeforePromote.uci() + "b"))
                     Promote = False
+                    FinishedPromote = False
                 elif event.pos[0] in range(100, 200) and event.pos[1] in range(400, 500):
                     Move = (chess.Move.from_uci(MoveBeforePromote.uci() + "n"))
                     Promote = False
+                    FinishedPromote = False
         if event.type == pygame.QUIT:
             run = False
         if event.type == pygame.KEYDOWN:
@@ -744,7 +749,6 @@ def PickUpPiece():
                 print("It's not your turn!")
 
 def PutDownPieceGetMove():
-    global FinishedPromote
     global Dragmode
     global NewSquare
     global OldSquare
@@ -752,9 +756,7 @@ def PutDownPieceGetMove():
     global MoveBeforePromote
     global DynamicOldSquare
     global DynamicNewSquare
-    if (Dragmode == 1) or (not FinishedPromote):
-        if not FinishedPromote:
-            FinishedPromote = True
+    if (Dragmode == 1):
         Dragmode = 0
         SquareDict = {
             0: "a8", 1: "b8", 2: "c8", 3: "d8", 4: "e8", 5: "f8", 6: "g8", 7: "h8",
@@ -780,16 +782,18 @@ def GetPlayerMove():
     global FinishedPromote
     global DynamicNewSquare
     global DynamicOldSquare
-    
+    print("OldSquare: ", OldSquare)
+    print("NewSquare: ", NewSquare)
     if OldSquare != NewSquare:
-        Move = chess.Move.from_uci(DynamicOldSquare + DynamicNewSquare)
-        print(Move, "Move not on same square")
-        if DraggedPiece[1] == "P" or DraggedPiece[1] == "p":
+        if FinishedPromote:
+            Move = chess.Move.from_uci(DynamicOldSquare + DynamicNewSquare)
+        if ((DraggedPiece[1] == "P") or (DraggedPiece[1] == "p")) and FinishedPromote:
             if NewSquare <= 7 or NewSquare >= 56:
                 Promote = True
+                print("Send Help")
                 MoveBeforePromote = Move
-                FinishedPromote = False
         if not Promote:
+            print("Validating Move: ", Move)
             if ValidateMove(Move):
                 HandleValidMove(Move)
                 print(Move, "Move Validated")
@@ -820,10 +824,11 @@ def HandleInvalidMove():
 def PlayMoveAndSound():
     global Move
     global turn
-    if ((Move != None) and (Move != "Illegal") and (Move != "Game Over")):
+    if ((Move != None) and (Move != "Illegal") and (Move != "Game Over")) and LegalMove == True:
         if isinstance(Move, str):
             Move = chess.Move.from_uci(Move)
         if isinstance(Move, chess.Move):
+            print("move pushed: ", Move)
             Sound = GetCorrectSound(Move)
             board.push(Move)
             PlaySound(Sound)
@@ -877,6 +882,7 @@ def PrintDebugInfo():
 
 run = True
 def MainGameLoop():
+    global FinishedPromote 
     global run
     global TURN
     global board
@@ -909,6 +915,10 @@ def MainGameLoop():
                 if not GameOver:
                     GetMove()
                     EventHandler()
+                    if not FinishedPromote:
+                        print("Promote")
+                        GetPlayerMove()
+                        FinishedPromote = True
                     PlayMoveAndSound()
                     GetOldAndNewSquareFromMove(Move)
                     HighlightMoveSquares()
