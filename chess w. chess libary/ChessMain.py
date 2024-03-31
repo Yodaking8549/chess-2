@@ -186,6 +186,10 @@ def MenuEventHandler():
     global already_initialized
     global Playercolor
     global PlayercolorButton
+    global PrintDebugButton
+    global PrintDebug
+    global AIDifficulty
+    global AIDifficultyButton
     run = True
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -223,6 +227,24 @@ def MenuEventHandler():
                     else:
                         print("Invalid Playercolor Setting")
                         exit()
+                if PrintDebugButton.collidepoint(event.pos):
+                    if PrintDebug:
+                        PrintDebug = False 
+                    elif not PrintDebug:
+                        PrintDebug = True
+                    else:
+                        print("Invalid PrintDebug Setting")
+                        exit()
+                if AIDifficultyButton.collidepoint(event.pos):
+                    if AIDifficulty == 0:
+                        AIDifficulty = 1
+                    elif AIDifficulty == 1:
+                        AIDifficulty = 2
+                    elif AIDifficulty == 2:
+                        AIDifficulty = 0
+                    else:
+                        print("Invalid AIDifficulty Setting")
+                        exit()
                 if StartButton.collidepoint(event.pos):
                     MainMenu = False
                     already_initialized = False
@@ -252,6 +274,7 @@ def DrawPvPMenu():
     screen.blit(text, text_rect)
     DrawHighlightPossibleMovesButton()
     DrawMemeModeButton()
+    DrawPrintDebugButton()
     DrawStartButton()
 
 def DrawPvAIMenu():
@@ -267,6 +290,8 @@ def DrawPvAIMenu():
     DrawHighlightPossibleMovesButton()
     DrawMemeModeButton()
     DrawPlayercolorButton()
+    DrawPrintDebugButton()
+    DrawAIDifficultyButton()
     DrawStartButton()
 
 def DrawAIvAIMenu():
@@ -280,6 +305,8 @@ def DrawAIvAIMenu():
     screen.blit(text, text_rect)
     DrawHighlightPossibleMovesButton()
     DrawMemeModeButton()
+    DrawPrintDebugButton()
+    DrawAIDifficultyButton()
     DrawStartButton()
 
 def DrawHighlightPossibleMovesButton():
@@ -317,6 +344,36 @@ def DrawPlayercolorButton():
     screen.blit(text, text_rect)
     
 PlayercolorButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 200, 330, 400, 70], 0, 5)
+
+def DrawPrintDebugButton():
+    global PrintDebugButton
+    global PrintDebug
+    if PrintDebug:
+        buttontxtextention = "ON"
+    else:
+        buttontxtextention = "OFF"
+    text = font.render("Print Debug: " + buttontxtextention, True, (0, 0, 0))
+    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 485))
+    PrintDebugButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 130, 450, 260, 70], 0, 5)
+    pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 130, 450, 260, 70], 5, 5)
+    screen.blit(text, text_rect)
+
+def DrawAIDifficultyButton():
+    global AIDifficultyButton
+    if AIDifficulty == 0:
+        buttontxtextention = "Random"
+    elif AIDifficulty == 1:
+        buttontxtextention = "Takes every piece"
+    elif AIDifficulty == 2:
+        buttontxtextention = "Minimax"
+        
+    text = font.render("AI Difficulty: " + buttontxtextention, True, (0, 0, 0))
+    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 585))
+    AIDifficultyButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 200, 550, 400, 70], 0, 5)
+    pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 200, 550, 400, 70], 5, 5)
+    screen.blit(text, text_rect)
+
+AIDifficultyButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 200, 550, 400, 70], 0, 5)
 
 def DrawStartButton():
     global StartButton
@@ -691,6 +748,10 @@ def ClearVariables():
     Promote = False
     global FinishedPromote
     FinishedPromote = True
+    global PrintDebug
+    PrintDebug = False
+    global AIDifficulty
+    AIDifficulty = 0
             
 def ReloadDisplayingBoardlistFromFEN():
     BoardFENToDisplayingBoard(board.fen())
@@ -782,21 +843,25 @@ def GetPlayerMove():
     global FinishedPromote
     global DynamicNewSquare
     global DynamicOldSquare
-    print("OldSquare: ", OldSquare)
-    print("NewSquare: ", NewSquare)
+    if PrintDebug:
+        print("OldSquare: ", OldSquare)
+        print("NewSquare: ", NewSquare)
     if OldSquare != NewSquare:
         if FinishedPromote:
             Move = chess.Move.from_uci(DynamicOldSquare + DynamicNewSquare)
         if ((DraggedPiece[1] == "P") or (DraggedPiece[1] == "p")) and FinishedPromote:
             if NewSquare <= 7 or NewSquare >= 56:
                 Promote = True
-                print("Send Help")
+                if PrintDebug:
+                    print("Send Help")
                 MoveBeforePromote = Move
         if not Promote:
-            print("Validating Move: ", Move)
+            if PrintDebug:
+                print("Validating Move: ", Move)
             if ValidateMove(Move):
                 HandleValidMove(Move)
-                print(Move, "Move Validated")
+                if PrintDebug:
+                    print(Move, "Move Validated")
             else:
                 HandleInvalidMove()
 
@@ -828,7 +893,8 @@ def PlayMoveAndSound():
         if isinstance(Move, str):
             Move = chess.Move.from_uci(Move)
         if isinstance(Move, chess.Move):
-            print("move pushed: ", Move)
+            if PrintDebug:
+                print("move pushed: ", Move)
             Sound = GetCorrectSound(Move)
             board.push(Move)
             PlaySound(Sound)
@@ -844,7 +910,7 @@ def GetMove():
     elif (Gamemode == 1 and Playercolor != turn) or Gamemode == 2:
         transparent.fill((0, 0, 0, 0))
         TURN = "AI"
-        Move = GetAIMove(board.fen())
+        Move = GetAIMove(board.fen(), AIDifficulty)
         LegalMove = True
         
 def EventHandler():
@@ -916,7 +982,8 @@ def MainGameLoop():
                     GetMove()
                     EventHandler()
                     if not FinishedPromote:
-                        print("Promote")
+                        if PrintDebug:
+                            print("Promote")
                         GetPlayerMove()
                         FinishedPromote = True
                     PlayMoveAndSound()
