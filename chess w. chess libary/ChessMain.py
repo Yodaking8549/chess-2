@@ -13,7 +13,7 @@ darkColor = 168, 121, 101
 MoveSquareHighlightColor = 217, 162, 13, 100
 PossibleMovesSquareHighlightColor = 0, 255, 0, 120
 HighlightPossibleMoves = 0
-MemeMode = 0
+SuperSecretMode = 0
 AIDifficulty = 0
 PrintDebug = False
 Gamemode = "PvP"
@@ -89,7 +89,7 @@ def init():
     global WhiteQueen
     global BlackQueen
     global HighlightPossibleMoves
-    global MemeMode
+    global SuperSecretMode
     global SoundFiles
     global StartFEN
     global HighlightPossibleMoves
@@ -136,7 +136,7 @@ def init():
         BlackRook = "bR"
         WhiteQueen = "wQ"
         BlackQueen = "bQ"
-        if MemeMode == 0:
+        if SuperSecretMode == 0:
             SoundFiles = ["chess w. chess libary/sounds/illegal.mp3",
                         "chess w. chess libary/sounds/capture.mp3", 
                         "chess w. chess libary/sounds/move.mp3", 
@@ -145,7 +145,7 @@ def init():
                         "chess w. chess libary/sounds/promote.mp3", 
                         "chess w. chess libary/sounds/castle.mp3",
                         "chess w. chess libary/sounds/game-start.mp3"]
-        elif MemeMode == 1:
+        elif SuperSecretMode == 1:
             SoundFiles = ["chess w. chess libary/sounds/illegal.mp3",
                         "chess w. chess libary/sounds/capture.mp3", 
                         "chess w. chess libary/sounds/move.mp3", 
@@ -164,7 +164,7 @@ def init():
         PromoteSound = 5
         CastleSound = 6
         GameStartSound = 7
-        if MemeMode == 1:
+        if SuperSecretMode == 1:
             BackgroundMusic = 8
             CountBGMusicSoundTimer = 1
         already_initialized = True
@@ -184,7 +184,7 @@ def MenuEventHandler():
     global Gamemode
     global run
     global HighlightPossibleMoves
-    global MemeMode
+    global SuperSecretMode
     global already_initialized
     global Playercolor
     global PlayercolorButton
@@ -213,13 +213,13 @@ def MenuEventHandler():
                     else:
                         print("Invalid HighlightPossibleMoves Setting")
                         exit()
-                if MemeModeButton.collidepoint(event.pos):
-                    if MemeMode == 1:
-                        MemeMode = 0
-                    elif MemeMode == 0:
-                        MemeMode = 1
+                if SuperSecretModeButton.collidepoint(event.pos):
+                    if SuperSecretMode == 1:
+                        SuperSecretMode = 0
+                    elif SuperSecretMode == 0:
+                        SuperSecretMode = 1
                     else:
-                        print("Invalid MemeMode Setting")
+                        print("Invalid SuperSecretMode Setting")
                         exit()
                 if PlayercolorButton.collidepoint(event.pos):
                     if Playercolor == chess.WHITE:
@@ -279,7 +279,7 @@ def DrawPvPMenu():
     text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 85))
     screen.blit(text, text_rect)
     DrawHighlightPossibleMovesButton()
-    DrawMemeModeButton()
+    DrawSuperSecretModeButton()
     DrawPrintDebugButton()
     DrawStartButton()
 
@@ -294,7 +294,7 @@ def DrawPvAIMenu():
     text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 85))
     screen.blit(text, text_rect)
     DrawHighlightPossibleMovesButton()
-    DrawMemeModeButton()
+    DrawSuperSecretModeButton()
     DrawPlayercolorButton()
     DrawPrintDebugButton()
     DrawAIDifficultyButton()
@@ -310,7 +310,7 @@ def DrawAIvAIMenu():
     text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 85))
     screen.blit(text, text_rect)
     DrawHighlightPossibleMovesButton()
-    DrawMemeModeButton()
+    DrawSuperSecretModeButton()
     DrawPrintDebugButton()
     DrawAIDifficultyButton()
     DrawStartButton()
@@ -326,15 +326,15 @@ def DrawHighlightPossibleMovesButton():
     pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 200, 150, 400, 70], 5, 5)
     screen.blit(text, text_rect)
 
-def DrawMemeModeButton():
-    global MemeModeButton
-    if MemeMode == 1:
-        text = font.render("Meme Mode: ON", True, (0, 0, 0))
+def DrawSuperSecretModeButton():
+    global SuperSecretModeButton
+    if SuperSecretMode == 1:
+        text = font.render("Super Secret Mode: ON", True, (0, 0, 0))
     else:
-        text = font.render("Meme Mode: OFF", True, (0, 0, 0))
+        text = font.render("Super Secret Mode: OFF", True, (0, 0, 0))
     text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 285))
-    MemeModeButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 130, 250, 260, 70], 0, 5)
-    pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 130, 250, 260, 70], 5, 5)
+    SuperSecretModeButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 200, 250, 400, 70], 0, 5)
+    pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 200, 250, 400, 70], 5, 5)
     screen.blit(text, text_rect)
 
 def DrawPlayercolorButton():
@@ -367,7 +367,7 @@ def DrawPrintDebugButton():
 def DrawAIDifficultyButton():
     global AIDifficultyButton
     if AIDifficulty == 0:
-        buttontxtextention = "Random"
+        buttontxtextention = "Plays Randomly"
     elif AIDifficulty == 1:
         buttontxtextention = "Takes every piece"
     elif AIDifficulty == 2:
@@ -402,7 +402,7 @@ def FindAIvAICheckmate():
     global MainMenu
     global StartNewAIGame
     global Gamemode
-    if (board.is_checkmate() == True and Gamemode == 2):
+    if (board.is_checkmate() == True or (Gamemode != 2)):
         pass
     else:
         MainMenu = True
@@ -695,17 +695,17 @@ def GameOverSoundHandler():
         CheckmateSoundTimer += 1
         if CheckmateSoundTimer == 13:
             sounds[CheckmateSound].play()
-            if MemeMode == 1:
+            if SuperSecretMode == 1:
                 sounds[BackgroundMusic].stop()
             CountCheckmateSoundTimer = 0
             CheckmateSoundTimer = 0         
             
 def BGMusicSoundHandler():
-    global MemeMode
+    global SuperSecretMode
     global BGMusicSoundTimer
     global CountBGMusicSoundTimer
     global BGMusicRunning
-    if MemeMode == 1:
+    if SuperSecretMode == 1:
         if CountBGMusicSoundTimer == 1:
             BGMusicSoundTimer += 1
             if BGMusicSoundTimer == 300:
