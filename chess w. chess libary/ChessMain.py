@@ -14,6 +14,8 @@ MoveSquareHighlightColor = 217, 162, 13, 100
 PossibleMovesSquareHighlightColor = 0, 255, 0, 120
 HighlightPossibleMoves = 0
 MemeMode = 0
+AIDifficulty = 0
+PrintDebug = False
 Gamemode = "PvP"
 AIvAITimeDelay = 0
 Playercolor = chess.WHITE
@@ -711,7 +713,7 @@ def ClearVariables():
     Dragmode = 0
     global EnPassantSquare
     EnPassantSquare = -1
-    global PlaySound
+    global playsound
     playsound = "No Sound"
     global CheckmateSoundTimer
     CheckmateSoundTimer = 0
@@ -748,10 +750,6 @@ def ClearVariables():
     Promote = False
     global FinishedPromote
     FinishedPromote = True
-    global PrintDebug
-    PrintDebug = False
-    global AIDifficulty
-    AIDifficulty = 0
             
 def ReloadDisplayingBoardlistFromFEN():
     BoardFENToDisplayingBoard(board.fen())
@@ -905,6 +903,7 @@ def GetMove():
     global board
     global Move
     global LegalMove
+    global AIDifficulty
     if Gamemode == 0 or (Gamemode == 1 and Playercolor == turn):
         TURN = "Player"
     elif (Gamemode == 1 and Playercolor != turn) or Gamemode == 2:
