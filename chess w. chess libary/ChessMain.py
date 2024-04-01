@@ -1,6 +1,7 @@
 import pygame
 import chess
 import time
+import chess.engine
 from ChessEngine import GetAIMove
 pygame.init()
 pygame.mixer.init()
@@ -629,7 +630,8 @@ def GetOldAndNewSquareFromMove(Move):
     if (Move is not None) and LegalMove == True:
         global OldSquare
         global NewSquare
-        SquareDict = {
+        global SquareDictFileToNum
+        SquareDictFileToNum = {
             "a8": 0, "b8": 1, "c8": 2, "d8": 3, "e8": 4, "f8": 5, "g8": 6, "h8": 7,
             "a7": 8, "b7": 9, "c7": 10, "d7": 11, "e7": 12, "f7": 13, "g7": 14, "h7": 15,
             "a6": 16, "b6": 17, "c6": 18, "d6": 19, "e6": 20, "f6": 21, "g6": 22, "h6": 23,
@@ -640,8 +642,8 @@ def GetOldAndNewSquareFromMove(Move):
             "a1": 56, "b1": 57, "c1": 58, "d1": 59, "e1": 60, "f1": 61, "g1": 62, "h1": 63
         }
         uci_move = Move.uci()
-        OldSquare = SquareDict[uci_move[:2]]
-        NewSquare = SquareDict[uci_move[2:4]]
+        OldSquare = SquareDictFileToNum[uci_move[:2]]
+        NewSquare = SquareDictFileToNum[uci_move[2:4]]
         
 def HighlightSquare(squarenumber, color):
     file = squarenumber % 8
@@ -659,10 +661,15 @@ def HighlightMoveSquares():
         LegalMove = False
     
 def MarkLegalMoves():
+    global ClickedSquare
     if HighlightPossibleMoves == 1:
         for move in board.legal_moves:
-            HighlightSquare(int(move.to_square), PossibleMovesSquareHighlightColor)
-    
+            if InvertSquare(ClickedSquare) == move.from_square:
+                HighlightSquare(int(InvertSquare(move.to_square)), PossibleMovesSquareHighlightColor)
+
+def InvertSquare(squarenumber):
+    return 63 - squarenumber
+
 def PlaySound(playsound: str):
     global GameOver
     global CountCheckmateSoundTimer
@@ -814,6 +821,7 @@ def PickUpPiece():
     global ClickedSquare
     global DraggedPiece
     global Dragmode
+    global MoveSquareHighlightColor
     if TURN == "Player":
         if turn:
             ClickedSquare = GetSquareUnderMouse()
@@ -821,6 +829,7 @@ def PickUpPiece():
             if DraggedPiece[0] == "w":
                 Dragmode = 1
                 displayingboard[ClickedSquare] = Empty
+                HighlightSquare(ClickedSquare, MoveSquareHighlightColor)
             elif DraggedPiece[0] == "b":
                 print("It's not your turn!")
         elif not turn:
@@ -829,6 +838,7 @@ def PickUpPiece():
             if DraggedPiece[0] == "b":
                 Dragmode = 1
                 displayingboard[ClickedSquare] = Empty
+                HighlightSquare(ClickedSquare, MoveSquareHighlightColor)
             elif DraggedPiece[0] == "w":
                 print("It's not your turn!")
 
@@ -840,9 +850,10 @@ def PutDownPieceGetMove():
     global MoveBeforePromote
     global DynamicOldSquare
     global DynamicNewSquare
+    global SquareDict_NumToFile
     if (Dragmode == 1):
         Dragmode = 0
-        SquareDict = {
+        SquareDict_NumToFile = {
             0: "a8", 1: "b8", 2: "c8", 3: "d8", 4: "e8", 5: "f8", 6: "g8", 7: "h8",
             8: "a7", 9: "b7", 10: "c7", 11: "d7", 12: "e7", 13: "f7", 14: "g7", 15: "h7",
             16: "a6", 17: "b6", 18: "c6", 19: "d6", 20: "e6", 21: "f6", 22: "g6", 23: "h6",
@@ -854,8 +865,8 @@ def PutDownPieceGetMove():
         }
         OldSquare = ClickedSquare
         NewSquare = GetSquareUnderMouse()
-        DynamicOldSquare = SquareDict[OldSquare]
-        DynamicNewSquare = SquareDict[NewSquare]
+        DynamicOldSquare = SquareDict_NumToFile[OldSquare]
+        DynamicNewSquare = SquareDict_NumToFile[NewSquare]
         GetPlayerMove()
         
 
@@ -887,6 +898,8 @@ def GetPlayerMove():
                     print(Move, "Move Validated")
             else:
                 HandleInvalidMove()
+    else:
+        transparent.fill((0, 0, 0, 0))
 
         
 def ValidateMove(Move) -> bool:
@@ -908,6 +921,7 @@ def HandleInvalidMove():
     displayingboard[ClickedSquare] = DraggedPiece
     Move = "Illegal"
     LegalMove = False
+    transparent.fill((0, 0, 0, 0))
     
 def PlayMoveAndSound():
     global Move
@@ -949,6 +963,7 @@ def EventHandler():
             if event.button == 1:
                 if TURN == "Player" and Dragmode == 0 and not GameOver and not MainMenu:
                     PickUpPiece()
+                    MarkLegalMoves()
             if event.button == 3 and not MainMenu:
                 PrintDebugInfo()
             if (((event.button == 2) and not MainMenu) and GameOver) and Gamemode == 2:
