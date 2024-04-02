@@ -19,7 +19,10 @@ AIDifficulty = 0
 PrintDebug = False
 Gamemode = "PvP"
 AIvAITimeDelay = 0
+StockfishTest = False
+StockfishTurn = chess.WHITE
 Playercolor = chess.WHITE
+StockfishThinkingTime = 0.001
 
 if Gamemode == "PvP":
     Gamemode = 0
@@ -95,6 +98,7 @@ def init():
     global StartFEN
     global HighlightPossibleMoves
     global CountBGMusicSoundTimer
+    global stockfish
     if already_initialized:
         pass
     else:            
@@ -174,6 +178,7 @@ def init():
         displayingboard = [0 for row in range(64)]
         turn = chess.WHITE
         board = chess.Board(StartFEN)
+        stockfish = chess.engine.SimpleEngine.popen_uci(r"C:/Users/jonat/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe")
         ClearVariables()
         CreateGraphicalBoard()
         ReloadDisplayingBoardlistFromFEN()
@@ -193,6 +198,7 @@ def MenuEventHandler():
     global PrintDebug
     global AIDifficulty
     global AIDifficultyButton
+    global StockfishTest
     run = True
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -244,9 +250,19 @@ def MenuEventHandler():
                     elif AIDifficulty == 1:
                         AIDifficulty = 2
                     elif AIDifficulty == 2:
+                        AIDifficulty = 3
+                    elif AIDifficulty == 3:
                         AIDifficulty = 0
                     else:
                         print("Invalid AIDifficulty Setting")
+                        exit()
+                if StockfishTestButton.collidepoint(event.pos):
+                    if StockfishTest:
+                        StockfishTest = False
+                    elif not StockfishTest:
+                        StockfishTest = True
+                    else:
+                        print("Invalid StockfishTest Setting")
                         exit()
                 if StartButton.collidepoint(event.pos):
                     MainMenu = False
@@ -314,6 +330,7 @@ def DrawAIvAIMenu():
     DrawSuperSecretModeButton()
     DrawPrintDebugButton()
     DrawAIDifficultyButton()
+    DrawStockfishTestButton()
     DrawStartButton()
 
 def DrawHighlightPossibleMovesButton():
@@ -349,8 +366,6 @@ def DrawPlayercolorButton():
     PlayercolorButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 130, 365, 260, 70], 0, 5)
     pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 130, 365, 260, 70], 5, 5)
     screen.blit(text, text_rect)
-    
-PlayercolorButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 200, 330, 400, 70], 0, 5)
 
 def DrawPrintDebugButton():
     global PrintDebugButton
@@ -373,6 +388,8 @@ def DrawAIDifficultyButton():
         buttontxtextention = "Takes every piece"
     elif AIDifficulty == 2:
         buttontxtextention = "Minimax"
+    elif AIDifficulty == 3:
+        buttontxtextention = "Stockfish"
         
     text = font.render("AI Difficulty: " + buttontxtextention, True, (0, 0, 0))
     text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 585))
@@ -381,6 +398,20 @@ def DrawAIDifficultyButton():
     screen.blit(text, text_rect)
 
 AIDifficultyButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 200, 550, 400, 70], 0, 5)
+StockfishTestButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 130, 650, 260, 70], 0, 5)
+PlayercolorButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 200, 330, 400, 70], 0, 5)
+
+def DrawStockfishTestButton():
+    global StockfishTestButton
+    if StockfishTest:
+        buttontxtextention = "ON"
+    else:
+        buttontxtextention = "OFF"
+    text = font.render("Stockfish Test: " + buttontxtextention, True, (0, 0, 0))
+    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, 685))
+    StockfishTestButton = pygame.draw.rect(screen, "light gray", [SCREEN_WIDTH // 2 - 130, 650, 260, 70], 0, 5)
+    pygame.draw.rect(screen, "dark gray", [SCREEN_WIDTH // 2 - 130, 650, 260, 70], 5, 5)
+    screen.blit(text, text_rect)
 
 def DrawStartButton():
     global StartButton
@@ -795,16 +826,28 @@ def HandleGameOver():
         GameOver = True
         CountCheckmateSoundTimer = 1
         if board.is_checkmate():
-            if Gamemode == 0 or Gamemode == 2:
-                if board.turn == chess.WHITE:
-                    print("Black wins by checkmate!")
+            if (Gamemode == 0 or Gamemode == 2):
+                if StockfishTest:
+                    if board.turn == StockfishTurn:
+                        print("Somehow Black defeated Stockfish by checkmate!")
+                    else:
+                        print("Stockfish won by checkmate (no surprise)")
                 else:
-                    print("White wins by checkmate!")
+                    if board.turn == chess.WHITE:
+                        print("Black wins by checkmate!")
+                    else:
+                        print("White wins by checkmate!")
             elif Gamemode == 1:
-                if board.turn == Playercolor:
-                    print("AI wins by checkmate!")
+                if AIDifficulty == 3:
+                    if board.turn == Playercolor:
+                        print("Stockfish wins by checkmate (no fucking suprise)")
+                    else:
+                        print("You somehow defeated stockfish (probably cheats)")
                 else:
-                    print("You win by checkmate!")
+                    if board.turn == Playercolor:
+                        print("AI wins by checkmate!")
+                    else:
+                        print("You win by checkmate!")
         elif board.is_stalemate():
             print("Draw By Stalemate")
         elif board.is_insufficient_material():
@@ -943,12 +986,19 @@ def GetMove():
     global Move
     global LegalMove
     global AIDifficulty
+    global StockfishTest
+    global StockfishTurn
+    global StockfishThinkingTime
     if Gamemode == 0 or (Gamemode == 1 and Playercolor == turn):
         TURN = "Player"
     elif (Gamemode == 1 and Playercolor != turn) or Gamemode == 2:
         transparent.fill((0, 0, 0, 0))
         TURN = "AI"
-        Move = GetAIMove(board.fen(), AIDifficulty)
+        if (Gamemode == 2 and StockfishTest and (turn == StockfishTurn)) or AIDifficulty == 3:
+            result = stockfish.play(board, chess.engine.Limit(time=StockfishThinkingTime))
+            Move = result.move
+        else:
+            Move = GetAIMove(board.fen(), AIDifficulty)
         LegalMove = True
         
 def EventHandler():
@@ -1054,3 +1104,4 @@ DrawPieces()
 
 MainGameLoop()
 pygame.quit()
+exit()
