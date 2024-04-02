@@ -178,7 +178,7 @@ def init():
         displayingboard = [0 for row in range(64)]
         turn = chess.WHITE
         board = chess.Board(StartFEN)
-        stockfish = chess.engine.SimpleEngine.popen_uci(r"C:/Users/jonat/Downloads/stockfish-windows-x86-64-avx2/stockfish/stockfish-windows-x86-64-avx2.exe")
+        stockfish = chess.engine.SimpleEngine.popen_uci(r"chess w. chess libary\TestAgainstStockfish\stockfish-windows-x86-64-avx2\stockfish\stockfish-windows-x86-64-avx2.exe")
         ClearVariables()
         CreateGraphicalBoard()
         ReloadDisplayingBoardlistFromFEN()
