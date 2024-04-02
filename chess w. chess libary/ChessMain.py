@@ -22,7 +22,7 @@ AIvAITimeDelay = 0
 StockfishTest = False
 StockfishTurn = chess.WHITE
 Playercolor = chess.WHITE
-StockfishThinkingTime = 0.001
+StockfishThinkingTime = 0
 
 if Gamemode == "PvP":
     Gamemode = 0
@@ -826,38 +826,39 @@ def HandleGameOver():
         GameOver = True
         CountCheckmateSoundTimer = 1
         if board.is_checkmate():
+            NumMoves = str(board.fullmove_number)
             if (Gamemode == 0 or Gamemode == 2):
                 if StockfishTest:
                     if board.turn == StockfishTurn:
-                        print("Somehow Black defeated Stockfish by checkmate!")
+                        print("Somehow Black defeated Stockfish by checkmate in " + NumMoves + " moves!")
                     else:
-                        print("Stockfish won by checkmate (no surprise)")
+                        print("Stockfish won by checkmate in " + NumMoves + " moves (no surprise)")
                 else:
                     if board.turn == chess.WHITE:
-                        print("Black wins by checkmate!")
+                        print("Black wins by checkmate in " + NumMoves + " moves!")
                     else:
-                        print("White wins by checkmate!")
+                        print("White wins by checkmate in " + NumMoves + " moves!")
             elif Gamemode == 1:
                 if AIDifficulty == 3:
                     if board.turn == Playercolor:
-                        print("Stockfish wins by checkmate (no fucking suprise)")
+                        print("Stockfish wins by checkmate in " + NumMoves + " moves (no fucking suprise)")
                     else:
-                        print("You somehow defeated stockfish (probably cheats)")
+                        print("You somehow defeated stockfish in " + NumMoves + " moves (probably cheats)")
                 else:
                     if board.turn == Playercolor:
-                        print("AI wins by checkmate!")
+                        print("AI wins by checkmate in " + NumMoves + " moves!")
                     else:
-                        print("You win by checkmate!")
+                        print("You win by checkmate in " + NumMoves + " moves!")
         elif board.is_stalemate():
-            print("Draw By Stalemate")
+            print("Draw By Stalemate (" + NumMoves + "moves)")
         elif board.is_insufficient_material():
-            print("Draw By Insufficient Material")
+            print("Draw By Insufficient Material (" + NumMoves + "moves)")
         elif board.is_seventyfive_moves():
-            print("Draw By Seventy Five Move Rule")
+            print("Draw By Seventy Five Move Rule (" + NumMoves + "moves)")
         elif board.is_fivefold_repetition():
-            print("Draw By Fivefold Repetition")
+            print("Draw By Fivefold Repetition (" + NumMoves + "moves)")
         else:
-            print("Draw By Other Reason")
+            print("Draw By Other Reason (" + NumMoves + "moves)")
         HandledGameOver = True
                 
 def PickUpPiece():
