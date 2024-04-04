@@ -7,7 +7,6 @@ knightValue = 320
 bishopValue = 330
 rookValue = 500
 queenValue = 900
-# kingValue = int(math.inf)
 
 def CountMaterialForTurn(color) -> int:
     OwnMaterial = 0
@@ -32,8 +31,6 @@ def CountMaterialOfColor(color):
                 Material += rookValue
             if piece.piece_type == chess.QUEEN:
                 Material += queenValue
-            # if piece.piece_type == chess.KING:
-            #     Material += kingValue
             
     return Material
 

@@ -1024,8 +1024,6 @@ def EventHandler():
             if event.button == 1:
                 if TURN == "Player" and Dragmode == 1 and not GameOver and not MainMenu:
                     PutDownPieceGetMove()
-        if event.type == pygame.QUIT:
-            run = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 if not MainMenu:
@@ -1105,4 +1103,5 @@ DrawPieces()
 
 MainGameLoop()
 pygame.quit()
+stockfish.quit()
 exit()
