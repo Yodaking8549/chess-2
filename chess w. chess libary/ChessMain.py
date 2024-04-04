@@ -824,9 +824,9 @@ def HandleGameOver():
     global CountCheckmateSoundTimer
     if board.is_game_over() and not HandledGameOver:
         GameOver = True
+        NumMoves = str(board.fullmove_number)
         CountCheckmateSoundTimer = 1
         if board.is_checkmate():
-            NumMoves = str(board.fullmove_number)
             if (Gamemode == 0 or Gamemode == 2):
                 if StockfishTest:
                     if board.turn == StockfishTurn:
