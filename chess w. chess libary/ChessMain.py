@@ -754,21 +754,31 @@ def BGMusicSoundHandler():
         if not BGMusicRunning:
             CountBGMusicSoundTimer = 1 
        
-def GetCorrectSound(PlayedMove):
+def GetCorrectSoundPreMove(PlayedMove):
     if isinstance(PlayedMove, str):
         PlayedMove = chess.Move.from_uci(PlayedMove)
     if isinstance(PlayedMove, chess.Move):
-        if board.gives_check(PlayedMove):
-            return "Check"
-        elif board.is_capture(PlayedMove):
-            return "Capture"
+        if PrintDebug:
+            print("Played Move (sounddebug): " + str(PlayedMove))
+        Sound = None
+        if board.is_capture(PlayedMove):
+            Sound = "Capture"
         elif board.is_castling(PlayedMove):
-            return "Castle"
+            Sound = "Castle"
         elif len(str(PlayedMove)) > 4:
-            return "Promote"
+            Sound = "Promote"
         else:
-            return "Move"
-   
+            Sound = "Move"
+        if PrintDebug:
+            print("Sound: " + Sound)
+        return Sound
+
+def GetCorrectSoundPostMove(Sound):
+    if board.is_check():
+        return "Check"
+    else:
+        return Sound
+
 def ClearVariables():
     global Dragmode
     Dragmode = 0
@@ -852,13 +862,13 @@ def HandleGameOver():
         elif board.is_stalemate():
             print("Draw By Stalemate (" + NumMoves + "moves)")
         elif board.is_insufficient_material():
-            print("Draw By Insufficient Material (" + NumMoves + "moves)")
+            print("Draw By Insufficient Material (" + NumMoves + " moves)")
         elif board.is_seventyfive_moves():
-            print("Draw By Seventy Five Move Rule (" + NumMoves + "moves)")
+            print("Draw By Seventy Five Move Rule (" + NumMoves + " moves)")
         elif board.is_fivefold_repetition():
-            print("Draw By Fivefold Repetition (" + NumMoves + "moves)")
+            print("Draw By Fivefold Repetition (" + NumMoves + " moves)")
         else:
-            print("Draw By Other Reason (" + NumMoves + "moves)")
+            print("Draw By Other Reason (" + NumMoves + " moves)")
         HandledGameOver = True
                 
 def PickUpPiece():
@@ -976,8 +986,11 @@ def PlayMoveAndSound():
         if isinstance(Move, chess.Move):
             if PrintDebug:
                 print("move pushed: ", Move)
-            Sound = GetCorrectSound(Move)
+            Sound = GetCorrectSoundPreMove(Move)
             board.push(Move)
+            Sound = GetCorrectSoundPostMove(Sound)
+            if PrintDebug:
+                print("Sound: ", Sound)
             PlaySound(Sound)
             turn = not turn
 

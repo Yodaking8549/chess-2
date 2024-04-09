@@ -34,9 +34,23 @@ def CountMaterialOfColor(color):
             
     return Material
 
+def CountMobilityForTurn(color):
+    OwnMobility = 0
+    EnemieMobility = 0
+    OwnMobility = CountMobilityOfColor(color)
+    EnemieMobility = CountMobilityOfColor(not color)
+    MobilityForTurn = OwnMobility - EnemieMobility
+    return MobilityForTurn
+
+def CountMobilityOfColor(color):
+    Mobility = 0
+    Mobility += len(str(board.legal_moves))
+    return Mobility
+
 def EvaluateBoard():
     Eval = 0
     Eval += CountMaterialForTurn(board.turn)
+    Eval += CountMobilityForTurn(board.turn)
     return Eval
 
 def GetAIMove(inputBoard, AIDifficulty):
